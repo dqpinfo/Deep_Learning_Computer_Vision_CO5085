@@ -14,7 +14,7 @@ Exercises (E1, E2, E3) and Assignments (A1, A2)
 
 # Landing Page
 
-# Các móc thời gian nộp bài
+# Các mốc thời gian nộp bài
 | Hạn nộp | Nội dung công việc | Tiến độ |
 | :---: | --- | :---: |
 | 19/10/2026 | Thiết lập GitHub Pages (khung trang) | Đã hoàn thành |
@@ -22,3 +22,17 @@ Exercises (E1, E2, E3) and Assignments (A1, A2)
 | 02/11/2026 | Nộp bài theo tiến độ A2.1 (Chủ đề + paper + dữ liệu), bài tập E1, E2 | Đang thực hiện |
 | 09/11/2026 | Nộp bài theo tiến độ A1.2 (So sánh cuối), bài tập E3 | Đang thực hiện |
 | 16/11/2026 | Nộp bài theo tiến độ A2.2 (Cài đặt + bài viết paper) | Đang thực hiện |
+
+# Cấu trúc Repository
+```text
+Deep_Learning_Computer_Vision_CO5085/
+├── E1/                         # Exercise E1
+├── E2/                         # Exercise E2
+├── E3/                         # Exercise E3
+├── A1/                         # Assignment A1
+├── A2/                         # Assignment A2
+├── reports/                    # Thư mục chứa các file báo cáo
+├── docs/                       # GitHub Pages
+├── README.md                   # Mô tả chung về repository
+├── requirements.txt            # Các thư viện cần sử dụng
+```
