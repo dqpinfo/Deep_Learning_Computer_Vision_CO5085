@@ -1,19 +1,24 @@
 # Học sâu và ứng dụng trong thị giác máy tính (CO5085)
-ĐH Bách Khoa TP.HCM (HCMUT) 2026–2027 HK1
+ĐH Bách Khoa TP.HCM (HCMUT) 2026–2027 HK1  
 Exercises (E1, E2, E3) and Assignments (A1, A2)
 
-
 # Giảng viên hướng dẫn
-* Thầy Lê Thành Sách
-* Thầy Nguyễn Quốc Minh
-
+* Thầy **Lê Thành Sách**
+* Thầy **Nguyễn Quốc Minh**
 
 # Thông tin học viên
 | Số thứ tự | Họ và tên | MSHV | Email |
+| :---: | --- | :---: | --- |
 | 1 | Đàm Quang Phục | 2570483 | phuc.damquang@hcmut.edu.vn |
 | 2 | Hồ Bảo An | 2570164 | an.ho272202@hcmut.edu.vn |
 
-| Số thứ tự | Họ và tên | MSHV | Email |
-| --------- | --------- | --------- | --------- |
-| 1 | Đàm Quang Phục | 2570483 | phuc.damquang@hcmut.edu.vn |
-| 2 | Hồ Bảo An | 2570164 | an.ho272202@hcmut.edu.vn |
+# Landing Page
+
+# Các móc thời gian nộp bài
+| Hạn nộp | Nội dung công việc | Tiến độ |
+| :---: | --- | :---: |
+| 19/10/2026 | Thiết lập GitHub Pages (khung trang) | Đã hoàn thành |
+| 26/10/2026 | Nộp bài theo tiến độ A1.1 (Dataset + protocol) | Đang thực hiện |
+| 02/11/2026 | Nộp bài theo tiến độ A2.1 (Chủ đề + paper + dữ liệu), bài tập E1, E2 | Đang thực hiện |
+| 09/11/2026 | Nộp bài theo tiến độ A1.2 (So sánh cuối), bài tập E3 | Đang thực hiện |
+| 16/11/2026 | Nộp bài theo tiến độ A2.2 (Cài đặt + bài viết paper) | Đang thực hiện |
