@@ -13,6 +13,7 @@ Exercises (E1, E2, E3) and Assignments (A1, A2)
 | 2 | Hồ Bảo An | 2570164 | an.ho272202@hcmut.edu.vn |
 
 # Landing Page
+https://dqpinfo.github.io/Deep_Learning_Computer_Vision_CO5085/
 
 # Các mốc thời gian nộp bài
 | Hạn nộp | Nội dung công việc | Tiến độ |
