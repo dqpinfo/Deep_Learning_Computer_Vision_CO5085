@@ -1,5 +1,5 @@
 # Học sâu và ứng dụng trong thị giác máy tính (CO5085)
-ĐH Bách Khoa TP.HCM (HCMUT) 2026–2027 HK1  
+ĐH Bách Khoa TP.HCM (HCMUT) 2026–2027 HK 261  
 Exercises (E1, E2, E3) and Assignments (A1, A2)
 
 # Giảng viên hướng dẫn
@@ -26,13 +26,15 @@ Exercises (E1, E2, E3) and Assignments (A1, A2)
 # Cấu trúc Repository
 ```text
 Deep_Learning_Computer_Vision_CO5085/
-├── E1/                         # Exercise E1
-├── E2/                         # Exercise E2
-├── E3/                         # Exercise E3
-├── A1/                         # Assignment A1
-├── A2/                         # Assignment A2
+├── Exercise_1/                 # Bài tập E1
+├── Exercise_2/                 # Bài tập E2
+├── Exercise_3/                 # Bài tập E3
+├── Assignment_1/               # Bài tập lớn A1
+├── Assignment_2/               # Bài tập lớn A2
 ├── reports/                    # Thư mục chứa các file báo cáo
 ├── docs/                       # GitHub Pages
 ├── README.md                   # Mô tả chung về repository
 ├── requirements.txt            # Các thư viện cần sử dụng
 ```
+
+# Hướng dẫn chạy chương trình
