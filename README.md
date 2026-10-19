@@ -31,8 +31,8 @@ Deep_Learning_Computer_Vision_CO5085/
 ├── Exercise_3/                 # Bài tập E3
 ├── Assignment_1/               # Bài tập lớn A1
 ├── Assignment_2/               # Bài tập lớn A2
-├── reports/                    # Thư mục chứa các file báo cáo
-├── docs/                       # GitHub Pages
+├── Reports/                    # Thư mục chứa các file báo cáo
+├── Pages/                      # GitHub Pages
 ├── README.md                   # Mô tả chung về repository
 ├── requirements.txt            # Các thư viện cần sử dụng
 ```
