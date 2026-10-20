@@ -35,16 +35,12 @@ Deep_Learning_Computer_Vision_CO5085/
 ├── Reports/                    # Thư mục chứa các file báo cáo
 ├── docs/                       # GitHub Pages
 ├── README.md                   # Mô tả chung về repository
-├── requirements.txt            # Các thư viện cần sử dụng
 ```
 
-# Hướng dẫn chạy chương trình
-* Clone source code:
+# Hướng dẫn chung trước khi chạy chương trình
+* Clone source code:  
 git clone https://github.com/dqpinfo/Deep_Learning_Computer_Vision_CO5085.git
 
-* Tạo và active môi trường ảo:
-python -m venv .venv
+* Tạo và active môi trường ảo:  
+python -m venv .venv  
 source .venv/bin/activate
-
-* Cài đặt thư viện:
-pip install -r requirements.txt
