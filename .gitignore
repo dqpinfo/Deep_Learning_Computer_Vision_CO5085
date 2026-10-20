@@ -218,3 +218,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# OS files
+**/.DS_Store
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
