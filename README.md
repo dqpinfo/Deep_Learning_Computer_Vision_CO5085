@@ -37,10 +37,5 @@ Deep_Learning_Computer_Vision_CO5085/
 ├── README.md                   # Mô tả chung về repository
 ```
 
-# Hướng dẫn chung trước khi chạy chương trình
-* Clone source code:  
+# Clone source code  
 git clone https://github.com/dqpinfo/Deep_Learning_Computer_Vision_CO5085.git
-
-* Tạo và active môi trường ảo:  
-python -m venv .venv  
-source .venv/bin/activate
