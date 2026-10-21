@@ -6,7 +6,6 @@
 import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
 
-import torch
 from torchvision import datasets, transforms # datasets: chứa các tập dữ liệu phổ biến (MNIST, CIFAR-10, ...), transformers: giúp chuyển đổi dữ liệu (ví dụ: từ ảnh sang tensor, chuẩn hóa, ...)
 from torch.utils.data import DataLoader      # DataLoader: giúp chia dữ liệu thành từng nhóm nhỏ (batch) và xáo trộn dữ liệu khi huấn luyện
 

@@ -2,7 +2,6 @@
 #   Tạo các lớp mô hình Softmax, MLP và CNN   #
 ###############################################
 
-import torch
 import torch.nn as nn
 
 # 1. Softmax Classifier
