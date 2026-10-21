@@ -42,12 +42,8 @@ class PyTorchMSA(nn.Module):
         self.msa = nn.MultiheadAttention(embed_dim = embed_dim, num_heads = num_heads, batch_first = True)
 
     def forward(self, x):
-        # nn.MultiheadAttention yêu cầu đầu vào có dạng (N, B, C)
-        x = x.transpose(0, 1)       # Chuyển đổi từ (B, N, C) sang (N, B, C)
-
         out, _ = self.msa(x, x, x)
-
-        return out.transpose(0, 1)  # Chuyển đổi (N, B, C) trở lại (B, N, C)
+        return out
 
 # 3. Tokenize theo các Patch (Lưới ô vuông) + CLS Token
 class PatchTokenizer(nn.Module):
@@ -107,4 +103,7 @@ class ImageClassifier(nn.Module):
         x = self.tokenizer(x)
         if self.attention is not None:
             x = self.attention(x)
-        return self.classifier(x[:, 0])
+            x = x[:, 0]
+        else:
+            x = x[:, 1:].mean(dim = 1)
+        return self.classifier(x)
