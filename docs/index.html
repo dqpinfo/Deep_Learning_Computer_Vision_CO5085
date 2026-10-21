@@ -200,6 +200,19 @@ main section { padding: 48px 0 8px; }
     color: var(--accent);
 }
 .status.done { background: var(--done-soft); color: var(--done); }
+.status.doing { background: #e8f0fe; color: #1d4ed8; }
+.status.todo { background: transparent; color: var(--ink-soft); border: 1px solid var(--line); }
+@media (prefers-color-scheme: dark) {
+    .status.doing { background: #172554; color: #93c5fd; }
+}
+.progress-meter { height: 10px; border-radius: 999px; background: var(--line); overflow: hidden; margin: 4px 0 8px; }
+.progress-meter span { display: block; height: 100%; background: var(--done); }
+.progress-list { list-style: none; margin: 0; padding: 0; }
+.progress-list li { display: flex; gap: 12px; align-items: baseline; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.progress-list li:last-child { border-bottom: 0; }
+.progress-list .item { font-weight: 600; }
+.progress-list small { display: block; color: var(--ink-soft); font-weight: 400; font-size: 14px; }
+.progress-list .status { margin-left: 0; white-space: nowrap; flex-shrink: 0; }
 
 /* Detail pages */
 .block { margin-bottom: 16px; }
@@ -396,7 +409,25 @@ table.plain th { font-size: 13px; color: var(--ink-soft); font-weight: 600; text
         </section>
 
         <section>
-            <div class="section-head"><span class="num">04</span><h2>Lịch nộp bài</h2></div>
+            <div class="section-head"><span class="num">04</span><h2>Tiến độ hiện tại</h2></div>
+            <p class="lead">Cập nhật ngày 21/10/2026 · đã xong 2/8 mốc.</p>
+            <div class="progress-meter" aria-hidden="true"><span style="width:25%"></span></div>
+            <div class="card">
+                <ul class="progress-list">
+                    <li><div class="item">Khung GitHub Pages<small>Trang chủ và các trang E1–E3, A1, A2</small></div><span class="status done">Đã hoàn thành</span></li>
+                    <li><div class="item">A1.1 — Dataset + protocol<small>CIFAR-100, ResNet-18 và DeiT-Tiny, kế hoạch 8 thí nghiệm, <a href="a1.html">báo cáo A1.1</a></small></div><span class="status done">Đã hoàn thành</span></li>
+                    <li><div class="item">E1 — Softmax / MLP / CNN<small>Đã có code huấn luyện và đánh giá trên MNIST; chưa có báo cáo PDF</small></div><span class="status doing">Đang thực hiện</span></li>
+                    <li><div class="item">E2 — MSA + tokenization<small>Đã có dữ liệu, MSA tự viết và hai kiểu tokenizer; đang hoàn thiện bộ phân loại</small></div><span class="status doing">Đang thực hiện</span></li>
+                    <li><div class="item">A2.1 — Chủ đề + paper + dữ liệu<small>Hạn 02/11/2026</small></div><span class="status todo">Chưa bắt đầu</span></li>
+                    <li><div class="item">E3 — LSTM / GRU<small>Hạn 09/11/2026</small></div><span class="status todo">Chưa bắt đầu</span></li>
+                    <li><div class="item">A1.2 — So sánh cuối<small>Pipeline đã sẵn sàng; hạn 09/11/2026</small></div><span class="status todo">Chưa bắt đầu</span></li>
+                    <li><div class="item">A2.2 — Cài đặt + bài viết paper<small>Hạn 16/11/2026</small></div><span class="status todo">Chưa bắt đầu</span></li>
+                </ul>
+            </div>
+        </section>
+
+        <section>
+            <div class="section-head"><span class="num">05</span><h2>Lịch nộp bài</h2></div>
             <p class="lead">Mọi hạn đều chốt lúc 23:59 (GMT+7) và chấm theo commit trên GitHub. Nộp trễ bị trừ 20% điểm mốc đó mỗi tuần, tối đa 7 ngày.</p>
             <ol class="timeline">
                 <li class="done">
@@ -408,7 +439,7 @@ table.plain th { font-size: 13px; color: var(--ink-soft); font-weight: 600; text
                     <div class="what">A1.1 — chốt tập dữ liệu và giao thức thí nghiệm</div>
                 </li>
                 <li>
-                    <div class="date">W9 · 02/11/2026 <span class="status">Sắp tới</span></div>
+                    <div class="date">W9 · 02/11/2026 <span class="status doing">Đang thực hiện</span></div>
                     <div class="what">E1 + E2; A2.1 — chốt chủ đề, paper và dữ liệu</div>
                 </li>
                 <li>
