@@ -1,0 +1,27 @@
+{
+  "experiment": {
+    "name": "resnet18_head",
+    "arch": "resnet18",
+    "pretrained": true,
+    "freeze": "head"
+  },
+  "device": "mps",
+  "epochs": 1,
+  "params_total": 11227812,
+  "params_trainable": 51300,
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 4.615082323551178,
+      "train_acc": 0.0078125,
+      "val_loss": 4.618657231330872,
+      "val_acc": 0.01171875,
+      "val_macro_f1": 0.0009064327485380117
+    }
+  ],
+  "train_time_sec": 3.2089435830057482,
+  "best_val_acc": 0.01171875,
+  "test_loss": 4.641502380371094,
+  "test_acc": 0.01171875,
+  "test_macro_f1": 0.0008820032093834058
+}

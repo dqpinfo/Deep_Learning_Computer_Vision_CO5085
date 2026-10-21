@@ -19,7 +19,7 @@ https://dqpinfo.github.io/Deep_Learning_Computer_Vision_CO5085/
 | Hạn nộp | Nội dung công việc | Tiến độ |
 | :---: | --- | :---: |
 | 19/10/2026 | Thiết lập GitHub Pages (khung trang) | Đã hoàn thành |
-| 26/10/2026 | Nộp bài theo tiến độ A1.1 (Dataset + protocol) | Đang thực hiện |
+| 26/10/2026 | Nộp bài theo tiến độ A1.1 (Dataset + protocol) | Đã hoàn thành |
 | 02/11/2026 | Nộp bài theo tiến độ A2.1 (Chủ đề + paper + dữ liệu), bài tập E1, E2 | Đang thực hiện |
 | 09/11/2026 | Nộp bài theo tiến độ A1.2 (So sánh cuối), bài tập E3 | Đang thực hiện |
 | 16/11/2026 | Nộp bài theo tiến độ A2.2 (Cài đặt + bài viết paper) | Đang thực hiện |

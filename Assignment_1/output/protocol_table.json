@@ -1,0 +1,98 @@
+[
+  {
+    "name": "resnet18_scratch",
+    "arch": "resnet18",
+    "pretrained": false,
+    "freeze": "none",
+    "params_total": 11227812,
+    "params_trainable": 11227812,
+    "trainable_ratio": 1.0,
+    "loss_first_step": 4.597,
+    "cpu_step_sec_batch8": 0.39,
+    "freeze_check": true
+  },
+  {
+    "name": "resnet18_head",
+    "arch": "resnet18",
+    "pretrained": true,
+    "freeze": "head",
+    "params_total": 11227812,
+    "params_trainable": 51300,
+    "trainable_ratio": 0.0046,
+    "loss_first_step": 4.5807,
+    "cpu_step_sec_batch8": 0.11,
+    "freeze_check": true
+  },
+  {
+    "name": "resnet18_partial",
+    "arch": "resnet18",
+    "pretrained": true,
+    "freeze": "partial",
+    "params_total": 11227812,
+    "params_trainable": 10544740,
+    "trainable_ratio": 0.9392,
+    "loss_first_step": 4.611,
+    "cpu_step_sec_batch8": 0.19,
+    "freeze_check": true
+  },
+  {
+    "name": "resnet18_full",
+    "arch": "resnet18",
+    "pretrained": true,
+    "freeze": "none",
+    "params_total": 11227812,
+    "params_trainable": 11227812,
+    "trainable_ratio": 1.0,
+    "loss_first_step": 4.5622,
+    "cpu_step_sec_batch8": 0.3,
+    "freeze_check": true
+  },
+  {
+    "name": "deit_tiny_scratch",
+    "arch": "deit_tiny",
+    "pretrained": false,
+    "freeze": "none",
+    "params_total": 5543716,
+    "params_trainable": 5543716,
+    "trainable_ratio": 1.0,
+    "loss_first_step": 4.8623,
+    "cpu_step_sec_batch8": 0.16,
+    "freeze_check": true
+  },
+  {
+    "name": "deit_tiny_head",
+    "arch": "deit_tiny",
+    "pretrained": true,
+    "freeze": "head",
+    "params_total": 5543716,
+    "params_trainable": 19300,
+    "trainable_ratio": 0.0035,
+    "loss_first_step": 4.6082,
+    "cpu_step_sec_batch8": 0.04,
+    "freeze_check": true
+  },
+  {
+    "name": "deit_tiny_partial",
+    "arch": "deit_tiny",
+    "pretrained": true,
+    "freeze": "partial",
+    "params_total": 5543716,
+    "params_trainable": 2688868,
+    "trainable_ratio": 0.485,
+    "loss_first_step": 4.634,
+    "cpu_step_sec_batch8": 0.12,
+    "freeze_check": true
+  },
+  {
+    "name": "deit_tiny_full",
+    "arch": "deit_tiny",
+    "pretrained": true,
+    "freeze": "none",
+    "params_total": 5543716,
+    "params_trainable": 5543716,
+    "trainable_ratio": 1.0,
+    "loss_first_step": 4.6358,
+    "cpu_step_sec_batch8": 0.14,
+    "freeze_check": true
+  }
+]
