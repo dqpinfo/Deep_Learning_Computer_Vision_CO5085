@@ -325,6 +325,7 @@ table.plain th { font-size: 13px; color: var(--ink-soft); font-weight: 600; text
             <h1>CNN hay Transformer? Đối chiếu trên một tập ảnh quy mô lớn</h1>
             <p>Nhóm tự chọn một tập ảnh lớn và khó hơn các tập của E1, rồi đánh giá hai họ kiến trúc dưới nhiều chế độ huấn luyện: học từ đầu, dùng trọng số pretrained, và các mức đóng băng backbone khác nhau.</p>
             <div class="meta">
+                <span class="chip">CIFAR-100 · ResNet-18 · DeiT-Tiny</span>
                 <span class="chip">A1.1: 26/10/2026</span>
                 <span class="chip">A1.2: 09/11/2026</span>
             </div>
@@ -333,49 +334,52 @@ table.plain th { font-size: 13px; color: var(--ink-soft); font-weight: 600; text
 
     <main class="wrap">
         <section>
-            <div class="section-head"><span class="num">01</span><h2>Thông tin thí nghiệm</h2></div>
+            <div class="section-head"><span class="num">01</span><h2>Lựa chọn của nhóm</h2></div>
             <div class="table-wrap card">
                 <table class="plain">
-                    <tr><th>Hạng mục</th><th>Lựa chọn của nhóm</th></tr>
-                    <tr><td>Tập dữ liệu</td><td>Đang chốt (công bố ở mốc A1.1)</td></tr>
-                    <tr><td>Mô hình CNN</td><td>Đang chốt — ví dụ ResNet, ConvNeXt, EfficientNet</td></tr>
-                    <tr><td>Mô hình Transformer</td><td>Đang chốt — ví dụ ViT, DeiT, Swin</td></tr>
-                    <tr><td>Nguồn pretrained</td><td>timm / torchvision / Hugging Face</td></tr>
+                    <tr><th>Hạng mục</th><th>Lựa chọn</th></tr>
+                    <tr><td>Tập dữ liệu</td><td><strong>CIFAR-100</strong> — 100 lớp, 60.000 ảnh màu 32×32 (Krizhevsky, 2009)</td></tr>
+                    <tr><td>Mô hình CNN</td><td><strong>ResNet-18</strong> · 11,2 triệu tham số</td></tr>
+                    <tr><td>Mô hình Transformer</td><td><strong>DeiT-Tiny/16</strong> · 5,5 triệu tham số</td></tr>
+                    <tr><td>Trọng số pretrained</td><td>ImageNet-1k, qua thư viện timm</td></tr>
+                    <tr><td>Kích thước đầu vào</td><td>Phóng ảnh lên 224×224 cho mọi cấu hình</td></tr>
                 </table>
             </div>
         </section>
 
         <section>
-            <div class="section-head"><span class="num">02</span><h2>Tiêu chí chọn dữ liệu</h2></div>
-            <div class="card">
-                <ul class="checklist">
-                    <li>Tập ảnh công khai, được phép dùng cho học tập<small>Ví dụ: CIFAR-100, TinyImageNet, Food-101, Stanford Cars, tập con của ImageNet hoặc iNaturalist</small></li>
-                    <li>Không dùng lại MNIST, Fashion-MNIST hay CIFAR-10</li>
-                    <li>Nên có từ 10 lớp và vài nghìn đến vài chục nghìn ảnh huấn luyện<small>Nếu GPU hạn chế thì lấy tập con có kiểm soát và ghi rõ</small></li>
-                    <li>Ghi rõ license, cách chia split và lý do chọn</li>
-                </ul>
+            <div class="section-head"><span class="num">02</span><h2>Dữ liệu và cách chia</h2></div>
+            <p class="lead">Mỗi lớp chỉ có 500 ảnh train, ảnh nhỏ và nhiều lớp rất giống nhau — đủ khó để thấy rõ khác biệt giữa CNN và Transformer, giữa học từ đầu và dùng pretrained.</p>
+            <div class="grid">
+                <div class="card"><h3>Train · 45.000</h3><p>450 ảnh mỗi lớp, lấy từ tập train gốc.</p></div>
+                <div class="card"><h3>Validation · 5.000</h3><p>50 ảnh mỗi lớp, chia phân tầng với seed 42, dùng để chọn checkpoint.</p></div>
+                <div class="card"><h3>Test · 10.000</h3><p>100 ảnh mỗi lớp, chỉ đánh giá một lần ở cuối mỗi thí nghiệm.</p></div>
+            </div>
+            <div class="card" style="margin-top:16px">
+                <img src="assets/a1/samples_per_class.png" alt="Một ảnh mẫu cho mỗi lớp của CIFAR-100" style="width:100%;height:auto;border-radius:8px">
+                <p style="margin-top:10px">Một ảnh mẫu cho mỗi lớp. 100 lớp được gom thành 20 siêu lớp (ví dụ: cây, phương tiện, thú cỡ nhỏ), dùng để phân tích lỗi.</p>
+            </div>
+            <div class="card" style="margin-top:16px">
+                <h3>Augmentation</h3>
+                <img src="assets/a1/augmentation_examples.png" alt="Ảnh gốc và các phiên bản sau augmentation" style="width:100%;height:auto;margin:8px 0;border-radius:8px">
+                <p>Train: cắt ngẫu nhiên (đệm 4 pixel) và lật ngang, rồi phóng lên 224×224 và chuẩn hoá theo ImageNet. Validation/test chỉ phóng ảnh và chuẩn hoá. Cả 8 cấu hình dùng cùng một pipeline.</p>
             </div>
         </section>
 
         <section>
-            <div class="section-head"><span class="num">03</span><h2>Ma trận thí nghiệm</h2></div>
-            <p class="lead">Các cấu hình cần chạy, tất cả trên cùng một split.</p>
-            <div class="grid">
-                <div class="card">
-                    <h3>Trục 1 · Họ kiến trúc</h3>
-                    <p>Tối thiểu một CNN và một Transformer.</p>
-                </div>
-                <div class="card">
-                    <h3>Trục 2 · Khởi tạo</h3>
-                    <p>Học từ đầu so với pretrained — bắt buộc ở ít nhất một họ, nên làm cả hai.</p>
-                </div>
-                <div class="card">
-                    <h3>Trục 3 · Đóng băng</h3>
-                    <p>Trên bản pretrained: chỉ train head, đóng băng một phần các block đầu, hoặc fine-tune toàn bộ.</p>
-                </div>
+            <div class="section-head"><span class="num">03</span><h2>Ma trận 8 thí nghiệm</h2></div>
+            <p class="lead">2 kiến trúc × 4 cách huấn luyện, cùng một split.</p>
+            <div class="table-wrap card">
+                <table class="plain">
+                    <tr><th>Cách huấn luyện</th><th>ResNet-18 · trainable</th><th>DeiT-Tiny · trainable</th></tr>
+                    <tr><td>Học từ đầu (from-scratch)</td><td>11.227.812 (100%)</td><td>5.543.716 (100%)</td></tr>
+                    <tr><td>Pretrained · chỉ train head</td><td>51.300 (0,5%)</td><td>19.300 (0,4%)</td></tr>
+                    <tr><td>Pretrained · đóng băng nửa đầu</td><td>10.544.740 (93,9%)</td><td>2.688.868 (48,5%)</td></tr>
+                    <tr><td>Pretrained · fine-tune toàn bộ</td><td>11.227.812 (100%)</td><td>5.543.716 (100%)</td></tr>
+                </table>
             </div>
             <div class="callout" style="margin-top:16px">
-                <strong>Số liệu báo cáo:</strong> accuracy / F1 trên validation-test, thời gian huấn luyện, số tham số trainable, cùng confusion matrix hoặc phân tích lỗi. Phần thảo luận trả lời các câu hỏi như khi nào đóng băng có lợi, ViT phụ thuộc vào pretrain đến mức nào.
+                <strong>Huấn luyện:</strong> AdamW, warmup 1 epoch + cosine, label smoothing 0,1, batch 128. Học từ đầu: lr 1e-3, 30 epoch. Pretrained: lr 1e-4, 10 epoch. <strong>Số liệu A1.2:</strong> accuracy, macro-F1, thời gian, tham số trainable, bộ nhớ GPU, confusion matrix theo 20 siêu lớp.
             </div>
         </section>
 
@@ -383,32 +387,19 @@ table.plain th { font-size: 13px; color: var(--ink-soft); font-weight: 600; text
             <div class="section-head"><span class="num">04</span><h2>Hai mốc nộp</h2></div>
             <div class="split">
                 <div class="card">
-                    <div class="pills"><span class="pill">A1.1 · 26/10/2026 · ≈25%</span></div>
+                    <div class="pills"><span class="pill">A1.1 · 26/10/2026</span><span class="status done">Đã hoàn thành</span></div>
                     <h3 style="margin-top:10px">Dữ liệu và giao thức</h3>
-                    <p>Chốt tập dữ liệu, mô tả split và augmentation, liệt kê các mô hình CNN/Transformer và kế hoạch from-scratch / pretrained / freeze. Chưa cần kết quả cuối.</p>
+                    <p>Chốt CIFAR-100, split, augmentation, hai mô hình và kế hoạch 8 thí nghiệm. Đã kiểm tra pipeline: cả 8 cấu hình tạo được, phần đóng băng đúng, vòng huấn luyện chạy thông.</p>
                 </div>
                 <div class="card">
-                    <div class="pills"><span class="pill">A1.2 · 09/11/2026 · ≈75%</span></div>
+                    <div class="pills"><span class="pill">A1.2 · 09/11/2026</span><span class="status">Sắp tới</span></div>
                     <h3 style="margin-top:10px">So sánh hoàn chỉnh</h3>
-                    <p>Đủ các thí nghiệm ở trên, có bảng và biểu đồ, phần thảo luận, mã nguồn tái lập được kèm README.</p>
+                    <p>Chạy đủ 8 thí nghiệm trên GPU, lập bảng và biểu đồ, phân tích lỗi, thảo luận khi nào đóng băng có lợi và ViT cần pretrain đến mức nào.</p>
                 </div>
-            </div>
-        </section>
-
-        <section>
-            <div class="section-head"><span class="num">05</span><h2>Bố cục trình bày</h2></div>
-            <div class="card">
-                <ul class="checklist">
-                    <li>Khám phá dữ liệu (EDA)</li>
-                    <li>DataLoader và augmentation</li>
-                    <li>Giao thức thí nghiệm</li>
-                    <li>Kết quả so sánh</li>
-                    <li>Thảo luận</li>
-                </ul>
             </div>
             <div class="actions" style="margin-top:16px">
                 <a class="btn primary" href="https://github.com/dqpinfo/Deep_Learning_Computer_Vision_CO5085/tree/main/Assignment_1">Mã nguồn A1</a>
-                <a class="btn pending" href="#" aria-disabled="true">Báo cáo PDF (cập nhật sau)</a>
+                <a class="btn primary" href="https://github.com/dqpinfo/Deep_Learning_Computer_Vision_CO5085/blob/main/Reports/A1_report.pdf">Báo cáo PDF (A1.1)</a>
                 <a class="btn pending" href="#" aria-disabled="true">Video demo (cập nhật sau)</a>
                 <a class="btn" href="index.html">← Về trang chủ</a>
             </div>

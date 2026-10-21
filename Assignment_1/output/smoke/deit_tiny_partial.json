@@ -1,0 +1,27 @@
+{
+  "experiment": {
+    "name": "deit_tiny_partial",
+    "arch": "deit_tiny",
+    "pretrained": true,
+    "freeze": "partial"
+  },
+  "device": "mps",
+  "epochs": 1,
+  "params_total": 5543716,
+  "params_trainable": 2688868,
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 4.671960234642029,
+      "train_acc": 0.01171875,
+      "val_loss": 4.66975462436676,
+      "val_acc": 0.03125,
+      "val_macro_f1": 0.018130578238621454
+    }
+  ],
+  "train_time_sec": 6.387527207996754,
+  "best_val_acc": 0.03125,
+  "test_loss": 4.632112085819244,
+  "test_acc": 0.0234375,
+  "test_macro_f1": 0.012198223368436132
+}
