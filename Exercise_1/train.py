@@ -47,11 +47,12 @@ def train_model(model, train_loader, epochs = 5, lr = 0.001):
             correct += (predicted == labels).sum().item()   # Tính số lượng dự đoán đúng bằng cách so sánh nhãn dự đoán với nhãn thực tế, sau đó cộng dồn vào biến correct
             
         epoch_loss = running_loss / total                   # Tính loss trung bình của epoch bằng cách chia tổng loss cho tổng số mẫu
-        epoch_acc = correct / total                         # Tính accuracy trung bình của epoch bằng cách chia số lượng dự đoán đúng cho tổng số mẫu
+        epoch_acc = 100.0 * correct / total                 # Tính accuracy trung bình của epoch bằng cách chia số lượng dự đoán đúng cho tổng số mẫu
+        
         history['train_loss'].append(epoch_loss)            # Lưu trữ loss trung bình của epoch vào lịch sử huấn luyện
         history['train_acc'].append(epoch_acc)              # Lưu trữ accuracy trung bình của epoch vào lịch sử huấn luyện
         
-        print(f"Epoch [{epoch + 1}/{epochs}] | Loss: {epoch_loss:.4f} | Acc: {epoch_acc * 100:.2f}%")
+        print(f"Epoch [{epoch + 1}/{epochs}] | Loss: {epoch_loss:.4f} | Acc: {epoch_acc:.2f}%")
         
     return model, history
 
