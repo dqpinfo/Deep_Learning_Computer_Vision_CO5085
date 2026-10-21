@@ -93,3 +93,18 @@ class RowTokenizer(nn.Module):
         x = torch.cat((cls_tokens, x), dim = 1)
         x = x + self.pos_embed
         return x
+
+
+class ImageClassifier(nn.Module):
+
+    def __init__(self, tokenizer, embed_dim = 64, num_classes = 10, attention = None):
+        super().__init__()
+        self.tokenizer = tokenizer
+        self.attention = attention
+        self.classifier = nn.Linear(embed_dim, num_classes)
+
+    def forward(self, x):
+        x = self.tokenizer(x)
+        if self.attention is not None:
+            x = self.attention(x)
+        return self.classifier(x[:, 0])

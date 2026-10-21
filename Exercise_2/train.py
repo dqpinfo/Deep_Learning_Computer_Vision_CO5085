@@ -9,7 +9,7 @@ import torch.nn as nn
 import torch.optim as optim
 from pathlib import Path
 from dataset import get_data_loaders
-from models import MyMSA, PyTorchMSA, PatchTokenizer, RowTokenizer
+from models import MyMSA, PyTorchMSA, PatchTokenizer, RowTokenizer, ImageClassifier
 
 def train_model(model, train_loader, epochs = 5, lr = 0.001):
 
@@ -65,10 +65,16 @@ def main():
     train_loader, _ = get_data_loaders(batch_size = 64)
     
     models = {
-        "MyMSA": MyMSA(embed_dim = 64, num_heads = 4),
-        "PyTorchMSA": PyTorchMSA(embed_dim = 64, num_heads = 4),
-        "PatchTokenizer": PatchTokenizer(),
-        "RowTokenizer": RowTokenizer()
+        "MyMSA": ImageClassifier(
+            PatchTokenizer(embed_dim = 64),
+            attention = MyMSA(embed_dim = 64, num_heads = 4),
+        ),
+        "PyTorchMSA": ImageClassifier(
+            PatchTokenizer(embed_dim = 64),
+            attention = PyTorchMSA(embed_dim = 64, num_heads = 4),
+        ),
+        "PatchTokenizer": ImageClassifier(PatchTokenizer(embed_dim = 64)),
+        "RowTokenizer": ImageClassifier(RowTokenizer(embed_dim = 64)),
     }
 
     all_histories = {}
