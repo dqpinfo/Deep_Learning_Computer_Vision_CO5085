@@ -5,7 +5,52 @@
 import torch
 import torch.nn as nn
 
-# 1. MSA tự viết từ các phép toán cơ bản
+# Tokenize theo các Patch (Lưới ô vuông) + CLS Token
+class PatchTokenizer(nn.Module):
+
+    def __init__(self, img_size = 28, patch_size = 7, in_channels = 1, embed_dim = 64):
+        super().__init__()
+        self.patch_size = patch_size
+        self.n_patches = (img_size // patch_size) ** 2
+        self.proj = nn.Linear(patch_size * patch_size * in_channels, embed_dim)
+        self.cls_token = nn.Parameter(torch.randn(1, 1, embed_dim))
+        self.pos_embed = nn.Parameter(torch.randn(1, self.n_patches + 1, embed_dim))
+
+    def forward(self, x):
+        B, C, H, W = x.shape
+        p = self.patch_size
+        x = x.unfold(2, p, p).unfold(3, p, p)
+        x = x.contiguous().view(B, C, -1, p, p)
+        x = x.permute(0, 2, 1, 3, 4).contiguous()
+        x = x.view(B, self.n_patches, -1)
+        x = self.proj(x)
+        
+        cls_tokens = self.cls_token.expand(B, -1, -1)
+        x = torch.cat((cls_tokens, x), dim = 1)
+        x = x + self.pos_embed
+        return x
+
+# Tokenize theo các hàng của ảnh + CLS Token
+class RowTokenizer(nn.Module):
+
+    def __init__(self, img_size = 28, in_channels = 1, embed_dim = 64):
+        super().__init__()
+        self.n_patches = img_size
+        self.proj = nn.Linear(img_size * in_channels, embed_dim)
+        self.cls_token = nn.Parameter(torch.randn(1, 1, embed_dim))
+        self.pos_embed = nn.Parameter(torch.randn(1, self.n_patches + 1, embed_dim))
+
+    def forward(self, x):
+        B, C, H, W = x.shape
+        x = x.permute(0, 2, 1, 3).contiguous().view(B, H, W * C)
+        x = self.proj(x)
+        
+        cls_tokens = self.cls_token.expand(B, -1, -1)
+        x = torch.cat((cls_tokens, x), dim = 1)
+        x = x + self.pos_embed
+        return x
+    
+# MSA tự viết từ các phép toán cơ bản
 class MyMSA(nn.Module):
 
     def __init__(self, embed_dim, num_heads):
@@ -34,7 +79,7 @@ class MyMSA(nn.Module):
         out = out.transpose(1, 2).contiguous().view(B, N, C)
         return self.out_linear(out)
 
-# 2. MSA dùng PyTorch nn.MultiheadAttention
+# MSA dùng PyTorch nn.MultiheadAttention
 class PyTorchMSA(nn.Module):
 
     def __init__(self, embed_dim, num_heads):
@@ -45,55 +90,9 @@ class PyTorchMSA(nn.Module):
         out, _ = self.msa(x, x, x)
         return out
 
-# 3. Tokenize theo các Patch (Lưới ô vuông) + CLS Token
-class PatchTokenizer(nn.Module):
+class ImageTransformerClassifier(nn.Module):
 
-    def __init__(self, img_size = 28, patch_size = 7, in_channels = 1, embed_dim = 64):
-        super().__init__()
-        self.patch_size = patch_size
-        self.n_patches = (img_size // patch_size) ** 2
-        self.proj = nn.Linear(patch_size * patch_size * in_channels, embed_dim)
-        self.cls_token = nn.Parameter(torch.randn(1, 1, embed_dim))
-        self.pos_embed = nn.Parameter(torch.randn(1, self.n_patches + 1, embed_dim))
-
-    def forward(self, x):
-        B, C, H, W = x.shape
-        p = self.patch_size
-        x = x.unfold(2, p, p).unfold(3, p, p)
-        x = x.contiguous().view(B, C, -1, p, p)
-        x = x.permute(0, 2, 1, 3, 4).contiguous()
-        x = x.view(B, self.n_patches, -1)
-        x = self.proj(x)
-        
-        cls_tokens = self.cls_token.expand(B, -1, -1)
-        x = torch.cat((cls_tokens, x), dim = 1)
-        x = x + self.pos_embed
-        return x
-
-# 4. Tokenize theo các hàng của ảnh + CLS Token
-class RowTokenizer(nn.Module):
-
-    def __init__(self, img_size = 28, in_channels = 1, embed_dim = 64):
-        super().__init__()
-        self.n_patches = img_size
-        self.proj = nn.Linear(img_size * in_channels, embed_dim)
-        self.cls_token = nn.Parameter(torch.randn(1, 1, embed_dim))
-        self.pos_embed = nn.Parameter(torch.randn(1, self.n_patches + 1, embed_dim))
-
-    def forward(self, x):
-        B, C, H, W = x.shape
-        x = x.permute(0, 2, 1, 3).contiguous().view(B, H, W * C)
-        x = self.proj(x)
-        
-        cls_tokens = self.cls_token.expand(B, -1, -1)
-        x = torch.cat((cls_tokens, x), dim = 1)
-        x = x + self.pos_embed
-        return x
-
-
-class ImageClassifier(nn.Module):
-
-    def __init__(self, tokenizer, embed_dim = 64, num_classes = 10, attention = None):
+    def __init__(self, tokenizer, attention, embed_dim = 64, num_classes = 10):
         super().__init__()
         self.tokenizer = tokenizer
         self.attention = attention

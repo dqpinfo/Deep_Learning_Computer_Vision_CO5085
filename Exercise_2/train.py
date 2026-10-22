@@ -9,7 +9,7 @@ import torch.nn as nn
 import torch.optim as optim
 from pathlib import Path
 from dataset import get_data_loaders
-from models import MyMSA, PyTorchMSA, PatchTokenizer, RowTokenizer, ImageClassifier
+from models import PatchTokenizer, RowTokenizer, MyMSA, PyTorchMSA, ImageTransformerClassifier
 
 def train_model(model, train_loader, epochs = 5, lr = 0.001):
 
@@ -65,16 +65,30 @@ def main():
     train_loader, _ = get_data_loaders(batch_size = 64)
     
     models = {
-        "MyMSA": ImageClassifier(
-            PatchTokenizer(embed_dim = 64),
+        "PatchTokenizer_MyMSA": ImageTransformerClassifier(
+            tokenizer = PatchTokenizer(img_size = 28, patch_size = 7, in_channels = 1, embed_dim = 64),
             attention = MyMSA(embed_dim = 64, num_heads = 4),
+            embed_dim = 64,
+            num_classes = 10
         ),
-        "PyTorchMSA": ImageClassifier(
-            PatchTokenizer(embed_dim = 64),
+        "PatchTokenizer_PyTorchMSA": ImageTransformerClassifier(
+            tokenizer = PatchTokenizer(img_size = 28, patch_size = 7, in_channels = 1, embed_dim = 64),
             attention = PyTorchMSA(embed_dim = 64, num_heads = 4),
+            embed_dim = 64,
+            num_classes = 10
         ),
-        "PatchTokenizer": ImageClassifier(PatchTokenizer(embed_dim = 64)),
-        "RowTokenizer": ImageClassifier(RowTokenizer(embed_dim = 64)),
+        "RowTokenizer_MyMSA": ImageTransformerClassifier(
+            tokenizer = RowTokenizer(img_size = 28, in_channels = 1, embed_dim = 64),
+            attention = MyMSA(embed_dim = 64, num_heads = 4),
+            embed_dim = 64,
+            num_classes = 10
+        ),
+        "RowTokenizer_PyTorchMSA": ImageTransformerClassifier(
+            tokenizer = RowTokenizer(img_size = 28, in_channels = 1, embed_dim = 64),
+            attention = PyTorchMSA(embed_dim = 64, num_heads = 4),
+            embed_dim = 64,
+            num_classes = 10
+        )
     }
 
     all_histories = {}
@@ -85,7 +99,8 @@ def main():
         start_time = time.perf_counter()
 
         # Huấn luyện mô hình
-        trained_model, history = train_model(model, train_loader, epochs = 5, lr = 0.001)
+        trained_model, history = train_model(model, train_loader, epochs = 10, lr = 0.001)
+        
         all_histories[name] = history
 
         training_time = time.perf_counter() - start_time

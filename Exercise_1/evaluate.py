@@ -35,8 +35,7 @@ def evaluate_model(model, test_loader):
     return accuracy
 
 # Hàm vẽ biểu đồ Loss và Accuracy so sánh giữa các mô hình
-def plot_learning_curves():
-    output_dir = Path("./output")
+def plot_learning_curves(output_dir = Path("./output")):
     history_file = output_dir / "training_history.json"
     
     if not history_file.exists():
@@ -71,6 +70,30 @@ def plot_learning_curves():
     plt.savefig(output_dir / 'comparison_curves.png', dpi = 300)
     print("-> Đã lưu biểu đồ so sánh Loss và Accuracy: comparison_curves.png")
     plt.show()
+
+# Vẽ bảng tổng hợp số liệu (tham số, accuracy) và lưu thành file ảnh
+def plot_summary_table(table_data, output_dir = Path("./output")):
+    
+    fig, ax = plt.subplots(figsize = (7, 3))
+    ax.axis('off')
+    
+    table = ax.table(cellText = table_data, loc = 'center', cellLoc = 'center')
+    table.auto_set_font_size(False)
+    table.set_fontsize(10)
+    table.scale(1.2, 1.8)
+    
+    # Định dạng màu cho hàng tiêu đề
+    for (row, col), cell in table.get_celld().items():
+        if row == 0:
+            cell.set_facecolor('#4CAF50')
+            cell.set_text_props(color = 'white', weight = 'bold')
+            
+    ax.set_title('Bảng tổng hợp chỉ số so sánh Bài tập E2', y = 0.85, weight = 'bold')
+    
+    plt.tight_layout()
+    plt.savefig(output_dir / f'summary_table.png', dpi = 300)
+    plt.show()
+    print(f"Đã lưu bảng tổng hợp tại: '{output_dir / f'summary_table.png'}'")
 
 # Hàm vẽ Confusion Matrix và tìm các mẫu lỗi (Error Analysis)
 def analyze_errors_and_confusion_matrix(model, test_loader, model_name = "Model", output_dir = Path("./output")):
@@ -137,7 +160,7 @@ def main():
         # Tải dữ liệu test
         _, test_loader = get_data_loaders(batch_size = 64)
         
-        # Khởi tạo và nạp trọng số đã huấn luyện cho 3 mô hình
+        # Khởi tạo và nạp trọng số đã huấn luyện cho các mô hình
         softmax_model = SoftmaxClassifier()
         softmax_model.load_state_dict(torch.load(output_dir / "softmax_weights.pth"))
         
@@ -148,12 +171,16 @@ def main():
         cnn_model.load_state_dict(torch.load(output_dir / "cnn_weights.pth"))
         
         # So sánh số lượng tham số
+        params_softmax_model = count_parameters(softmax_model)
+        params_mlp_model = count_parameters(mlp_model)
+        params_cnn_model = count_parameters(cnn_model)
+
         print("\n===================================================================")
         print("Bảng so sánh số lượng tham số (Model Capacity)")
         print("===================================================================")
-        print(f"Softmax Classifier : {count_parameters(softmax_model):,} tham số")
-        print(f"MLP Classifier     : {count_parameters(mlp_model):,} tham số")
-        print(f"CNN Classifier     : {count_parameters(cnn_model):,} tham số")
+        print(f"Softmax Classifier : {params_softmax_model:,} tham số")
+        print(f"MLP Classifier     : {params_mlp_model:,} tham số")
+        print(f"CNN Classifier     : {params_cnn_model:,} tham số")
         print("===================================================================")
         
         # Đánh giá độ chính xác trên tập Test
@@ -164,11 +191,21 @@ def main():
         print("\n===================================================================")
         print("Bảng đánh giá độ chính xác (Accuracy) trên tập Test")
         print("===================================================================")
-        print(f"-> Softmax Test Accuracy : {acc_softmax * 100:.2f}%")
-        print(f"-> MLP Test Accuracy     : {acc_mlp * 100:.2f}%")
-        print(f"-> CNN Test Accuracy     : {acc_cnn * 100:.2f}%")
+        print(f"Softmax Test Accuracy : {acc_softmax * 100:.2f}%")
+        print(f"MLP Test Accuracy     : {acc_mlp * 100:.2f}%")
+        print(f"CNN Test Accuracy     : {acc_cnn * 100:.2f}%")
         print("===================================================================")
+
+        # Vẽ và lưu bảng tổng hợp số liệu
+        table_data = [
+            ["Mô hình", "Số lượng tham số", "Độ chính xác (Accuracy)"],
+            ["Softmax", f"{params_softmax_model:,}", f"{acc_softmax * 100:.2f}%"],
+            ["MLP", f"{params_mlp_model:,}", f"{acc_mlp * 100:.2f}%"],
+            ["CNN", f"{params_cnn_model:,}", f"{acc_cnn * 100:.2f}%"]
+        ]
         
+        plot_summary_table(table_data)
+
         # Tạo biểu đồ so sánh đường học (Learning Curves) giữa các mô hình
         print("\nĐang vẽ biểu đồ so sánh Loss và Accuracy giữa các mô hình")
         plot_learning_curves()
