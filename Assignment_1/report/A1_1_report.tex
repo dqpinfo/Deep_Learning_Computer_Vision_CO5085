@@ -1,0 +1,437 @@
+\documentclass[12pt]{article}
+
+% ============================================================
+% Compile: pdflatex (mặc định của Overleaf) hoặc xelatex đều được.
+% Cần file logo-bk.png đặt cùng thư mục với file .tex.
+% Hình EDA: class_counts.png, samples_per_class.png, augmentation_examples.png
+% (sinh bởi eda.py vào Assignment_1/output/eda/). Trên Overleaf chỉ cần
+% upload 3 hình này cùng thư mục với file .tex.
+% ============================================================
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[utf8]{inputenc}
+  \usepackage[T5]{fontenc}
+  \usepackage{lmodern}
+\else
+  \usepackage{fontspec}   % XeLaTeX/LuaLaTeX: Latin Modern (Unicode) mặc định
+\fi
+\usepackage[vietnamese]{babel}
+
+\usepackage[a4paper,margin=2.5cm,headheight=2cm,headsep=0.8cm]{geometry}
+\usepackage{graphicx,booktabs,tabularx,xltabular,longtable,array,xcolor,enumitem,amssymb,multirow,caption}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{titlesec}
+\usepackage{float}
+\usepackage{hyperref}
+\hypersetup{hidelinks, pdftitle={A1.1 - Dataset va protocol - CNN vs Transformer tren CIFAR-100}}
+\usepackage{parskip}
+
+\graphicspath{{./}{figures/}}
+\captionsetup{labelfont=bf,skip=4pt}
+\setlist{nosep,leftmargin=*}
+\titleformat{\section}{\large\bfseries}{\thesection.}{0.4em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection.}{0.4em}{}
+\titlespacing*{\section}{0pt}{10pt}{4pt}\titlespacing*{\subsection}{0pt}{6pt}{2pt}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
+\renewcommand{\arraystretch}{1.15}
+\setlength{\emergencystretch}{3em}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\st}[1]{\textbf{#1}}
+\newcommand{\todo}[1]{\textcolor{red}{\textbf{[#1]}}}
+% Chèn hình nếu có file, nếu chưa upload thì hiện khung báo thiếu (để vẫn compile được)
+\newcommand{\fig}[2]{\IfFileExists{#2}{\includegraphics[width=#1]{#2}}{%
+  \IfFileExists{../output/eda/#2}{\includegraphics[width=#1]{../output/eda/#2}}{%
+  \fbox{\parbox{0.8\linewidth}{\centering\todo{Thiếu hình \detokenize{#2}}}}}}}
+
+% ---------- Thông tin chung ----------
+\newcommand{\TenTruong}{Đại học Quốc gia Thành phố Hồ Chí Minh\\Trường Đại học Bách khoa\\Khoa Khoa học và Kỹ thuật Máy tính}
+\newcommand{\TenTruongHeader}{Ho Chi Minh University of Technology\\Faculty of Computer Science and Engineering}
+\newcommand{\TenMonHoc}{Học sâu và ứng dụng trong thị giác máy tính}
+\newcommand{\MaMonHoc}{CO5085}
+\newcommand{\TenBaoCao}{Bài tập lớn A1 - Mốc A1.1: Dataset và protocol thí nghiệm}
+\newcommand{\TenDeTai}{CNN hay Transformer? So sánh ResNet-18 và DeiT-Tiny\\trên CIFAR-100 với nhiều chế độ huấn luyện}
+\newcommand{\GiangVien}{Thầy Lê Thành Sách\\Thầy Nguyễn Quốc Minh}
+\newcommand{\ThanhVien}{%
+  Đàm Quang Phục - 2570483\\
+  Hồ Bảo An - 2570164
+}
+\newcommand{\DiaDiemNgay}{Thành Phố Hồ Chí Minh, 10/2026}
+\newcommand{\FooterText}{\TenMonHoc\ -- \MaMonHoc}
+
+% ---------- Header / Footer ----------
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\fancyhead[L]{%
+  \parbox[t][\headheight][t]{\headwidth}{%
+    \vspace{0.2cm}
+    \begin{minipage}[b]{1.1cm}
+      \IfFileExists{logo-bk.png}{\includegraphics[width=1.1cm]{logo-bk.png}}{}
+    \end{minipage}%
+    \hspace{0.5em}%
+    \begin{minipage}[b]{8cm}
+      \small \TenTruongHeader
+    \end{minipage}%
+  }%
+}
+\fancyfoot[L]{\small \FooterText}
+\fancyfoot[R]{\small Page \thepage/\pageref{LastPage}}
+
+\fancypagestyle{plain}{%
+  \fancyhf{}
+  \renewcommand{\headrulewidth}{0pt}
+  \renewcommand{\footrulewidth}{0pt}
+}
+
+\begin{document}
+
+% ================= TRANG BÌA =================
+\begin{titlepage}
+\thispagestyle{plain}
+\begin{center}
+{\bfseries \TenTruong \par}
+\vspace{2em}
+
+\IfFileExists{logo-bk.png}{\includegraphics[width=3cm]{logo-bk.png}\\[1em]}{}
+
+\vspace{5em}
+
+{\LARGE \bfseries \TenMonHoc\ (\MaMonHoc) \par}
+\vspace{0.3em}
+\rule{0.85\textwidth}{0.5pt}
+
+\vspace{1em}
+{\Large \bfseries \TenBaoCao \par}
+\vspace{0.6em}
+{\large \TenDeTai \par}
+\vspace{0.3em}
+\rule{0.85\textwidth}{0.5pt}
+
+\vspace{5em}
+
+\noindent\begin{minipage}[t]{3.6cm}
+\raggedleft
+Giảng viên:\\[0.5em]
+\phantom{x}\\[0.5em]
+Thành viên nhóm:
+\end{minipage}%
+\hspace{0.6em}%
+\begin{minipage}[t]{8cm}
+\GiangVien\\[0.5em]
+\ThanhVien
+\end{minipage}
+
+\vspace{2em}
+{\footnotesize Mã nguồn: \url{https://github.com/dqpinfo/Deep_Learning_Computer_Vision_CO5085/tree/main/Assignment_1}\par}
+
+\vfill
+{\bfseries \DiaDiemNgay}
+\end{center}
+\end{titlepage}
+
+% ================= MỤC LỤC =================
+\tableofcontents
+\newpage
+
+% ======================================================================= status box
+\noindent\fcolorbox{black!35}{black!3}{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule}{
+\textbf{Tóm tắt mốc A1.1 (hạn 26/10/2026).} Nhóm đã chốt tập dữ liệu \st{CIFAR-100}, cách chia
+train/validation/test cố định (45.000 / 5.000 / 10.000 ảnh, seed 42), DataLoader và augmentation dùng chung,
+hai mô hình \st{ResNet-18} (CNN) và \st{DeiT-Tiny} (Transformer), cùng ma trận \st{8 thí nghiệm}
+(2 kiến trúc $\times$ 4 chế độ huấn luyện). Pipeline đã được kiểm tra: cả 8 cấu hình tạo được, phần đóng băng
+đúng, vòng huấn luyện -- đánh giá chạy thông trên tập con nhỏ. Kết quả số liệu cuối thuộc mốc A1.2 (09/11/2026).
+Mọi con số trong báo cáo lấy từ \code{config.py}, \code{output/eda/summary.json} và \code{output/protocol\_table.json}.}}
+
+% ======================================================================= 1
+\section{Chủ đề và mục tiêu}
+Bài A1 so sánh hai họ kiến trúc cho bài toán phân loại ảnh: mạng tích chập (CNN) và Vision Transformer (ViT)~\cite{dosovitskiy2021}.
+Hai họ được đánh giá dưới nhiều chế độ huấn luyện: học từ đầu (\emph{from-scratch}) so với dùng trọng số
+\emph{pretrained}, và ba mức đóng băng backbone trên bản pretrained (chỉ train head, đóng băng một phần,
+fine-tune toàn bộ).
+
+Mốc A1.1 chốt tập dữ liệu, cách chia split, DataLoader và augmentation, các mô hình sử dụng và kế hoạch
+thí nghiệm (protocol). Kết quả số liệu cuối sẽ có ở mốc A1.2 (09/11/2026).
+
+% ======================================================================= 2
+\section{Tập dữ liệu: CIFAR-100}
+\subsection{Lý do chọn}
+\begin{itemize}
+  \item \st{Đúng ràng buộc của đề:} tập ảnh công khai, có 100 lớp (yêu cầu $\geq 10$) và 50.000 ảnh huấn luyện;
+        không trùng với các tập đã dùng ở E1 (MNIST / Fashion-MNIST / CIFAR-10).
+  \item \st{Đủ khó để so sánh có ý nghĩa:} mỗi lớp chỉ có 500 ảnh train, ảnh nhỏ $32\times32$ và nhiều lớp rất giống
+        nhau (ví dụ 5 loại cây: maple, oak, palm, pine, willow). Trong điều kiện này, ưu thế của pretrained và nhu cầu
+        dữ liệu của Transformer bộc lộ rõ.
+  \item \st{Vừa sức tính toán:} toàn bộ tập khoảng 140\,MB; cả 8 cấu hình có thể chạy trên một GPU phổ thông
+        (Google Colab T4) trong thời gian của mốc A1.2.
+  \item \st{Có nhãn hai cấp:} 100 lớp chi tiết được gom thành 20 siêu lớp, giúp phân tích lỗi kiểu
+        ``nhầm trong cùng nhóm'' hay ``nhầm khác nhóm''.
+\end{itemize}
+
+\subsection{Nguồn và license}
+CIFAR-100 do Krizhevsky (2009) công bố tại \url{https://www.cs.toronto.edu/~kriz/cifar.html}, là tập con có gán nhãn
+của bộ ``80 Million Tiny Images''. Tập không đi kèm license chuẩn (kiểu MIT hay CC); tác giả cho phép dùng tự do cho
+nghiên cứu và học tập, với yêu cầu trích dẫn báo cáo kỹ thuật gốc~\cite{krizhevsky2009}. Bộ 80 Million Tiny Images
+gốc đã bị gỡ năm 2020 do chứa nhãn không phù hợp, nhưng CIFAR-10/100 là tập đã được gán nhãn lại thủ công và vẫn được
+cung cấp chính thức.
+
+Do server gốc tải rất chậm từ Việt Nam, nhóm tải dữ liệu từ bản sao chính thức trên Hugging Face
+(\code{uoft-cs/cifar100}). Bản này có cùng ảnh, cùng nhãn và cùng thứ tự với bản gốc. Ảnh được giải mã một lần
+và cache vào \code{data/cifar100.npz} (\code{data.py}); thư mục \code{data/} không được commit lên GitHub.
+Metadata của bản Hugging Face ghi sai tên lớp \code{crab} thành \code{cra}; \code{data.py} sửa lại tên gốc khi nạp.
+
+\subsection{Cách chia split}
+\begin{table}[H]
+\centering
+\caption{Ba tập dữ liệu dùng chung cho cả 8 thí nghiệm (\code{output/eda/summary.json}).}\label{tab:split}
+\begin{tabularx}{\linewidth}{@{}lrrlL@{}}
+\toprule
+Split & Số ảnh & Mỗi lớp & Nguồn & Vai trò \\\midrule
+Train      & 45.000 & 450 & Tập train gốc & Cập nhật trọng số \\
+Validation &  5.000 &  50 & Tập train gốc & Chọn checkpoint tốt nhất, theo dõi quá trình học \\
+Test       & 10.000 & 100 & Tập test gốc  & Chỉ dùng một lần ở cuối mỗi thí nghiệm \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Validation được lấy \st{phân tầng}: mỗi lớp chọn ngẫu nhiên 50 ảnh từ tập train gốc với seed 42
+(\code{make\_split} trong \code{data.py}). Chỉ số ảnh được lưu cố định trong \code{splits/cifar100\_split.json},
+nên cả 8 thí nghiệm dùng \st{đúng cùng một split}. Tập test không được dùng để chọn siêu tham số hay checkpoint.
+
+\subsection{Khám phá dữ liệu (EDA)}
+Script \code{eda.py} đếm số ảnh mỗi lớp theo split, vẽ ảnh mẫu, ví dụ augmentation, tính thống kê pixel và
+liệt kê 20 siêu lớp; kết quả lưu ở \code{output/eda/}.
+
+\begin{figure}[H]
+\centering
+\fig{\linewidth}{class_counts.png}
+\caption{Số ảnh mỗi lớp theo split: dữ liệu cân bằng tuyệt đối (450 / 50 / 100 ảnh mỗi lớp).}\label{fig:counts}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\fig{0.82\linewidth}{samples_per_class.png}
+\caption{Một ảnh mẫu cho mỗi lớp của CIFAR-100 (độ phân giải gốc $32\times32$).}\label{fig:samples}
+\end{figure}
+
+\textbf{Nhận xét.}
+\begin{itemize}
+  \item Mọi ảnh là ảnh màu RGB kích thước $32\times32\times3$. Không lớp nào thiếu ảnh (Hình~\ref{fig:counts}),
+        nên accuracy và macro-F1 phản ánh tương đương nhau; nhóm vẫn báo cáo cả hai.
+  \item Trung bình pixel trên tập train (R, G, B) là (0.507, 0.487, 0.441), độ lệch chuẩn là (0.267, 0.256, 0.276).
+        Thống kê này gần với thống kê ImageNet (mean (0.485, 0.456, 0.406), std (0.229, 0.224, 0.225)), nên việc dùng
+        chuẩn hoá ImageNet cho mọi cấu hình là hợp lý (Mục~\ref{sec:loader}).
+  \item Ảnh rất nhỏ, vật thể thường chiếm gần hết khung hình và nhiều chi tiết bị mất. Lỗi dự kiến tập trung ở các
+        lớp cùng siêu lớp (Bảng~\ref{tab:coarse}), ví dụ các loài cây, các loại xe hay các loài thú có vú cỡ nhỏ.
+\end{itemize}
+
+\begin{xltabular}{\linewidth}{@{}P{5.2cm}L@{}}
+\caption{20 siêu lớp của CIFAR-100, mỗi siêu lớp gồm 5 lớp chi tiết.}\label{tab:coarse}\\
+\toprule Siêu lớp & Các lớp chi tiết \\\midrule
+\endfirsthead
+\toprule Siêu lớp & Các lớp chi tiết \\\midrule
+\endhead
+\bottomrule
+\endlastfoot
+aquatic mammals & beaver, dolphin, otter, seal, whale \\
+fish & aquarium fish, flatfish, ray, shark, trout \\
+flowers & orchid, poppy, rose, sunflower, tulip \\
+food containers & bottle, bowl, can, cup, plate \\
+fruit and vegetables & apple, mushroom, orange, pear, sweet pepper \\
+household electrical devices & clock, keyboard, lamp, telephone, television \\
+household furniture & bed, chair, couch, table, wardrobe \\
+insects & bee, beetle, butterfly, caterpillar, cockroach \\
+large carnivores & bear, leopard, lion, tiger, wolf \\
+large man-made outdoor things & bridge, castle, house, road, skyscraper \\
+large natural outdoor scenes & cloud, forest, mountain, plain, sea \\
+large omnivores and herbivores & camel, cattle, chimpanzee, elephant, kangaroo \\
+medium mammals & fox, porcupine, possum, raccoon, skunk \\
+non-insect invertebrates & crab, lobster, snail, spider, worm \\
+people & baby, boy, girl, man, woman \\
+reptiles & crocodile, dinosaur, lizard, snake, turtle \\
+small mammals & hamster, mouse, rabbit, shrew, squirrel \\
+trees & maple tree, oak tree, palm tree, pine tree, willow tree \\
+vehicles 1 & bicycle, bus, motorcycle, pickup truck, train \\
+vehicles 2 & lawn mower, rocket, streetcar, tank, tractor \\
+\end{xltabular}
+
+% ======================================================================= 3
+\section{DataLoader và augmentation}\label{sec:loader}
+\begin{table}[H]
+\centering
+\caption{Pipeline tiền xử lý, giống hệt nhau cho cả 8 cấu hình (\code{data.py}).}\label{tab:pipeline}
+\begin{tabularx}{\linewidth}{@{}P{3.6cm}LL@{}}
+\toprule
+Bước & Train & Validation / Test \\\midrule
+1. Augmentation ở $32\times32$ & \code{RandomCrop(32, padding=4)} + \code{RandomHorizontalFlip} & Không \\
+2. Phóng ảnh & \multicolumn{2}{l}{\code{Resize} lên $224\times224$ (nội suy bicubic)} \\
+3. Chuẩn hoá & \multicolumn{2}{l}{\code{ToTensor} + \code{Normalize} theo mean/std của ImageNet} \\
+DataLoader & batch 128, \code{shuffle}, \code{drop\_last} & batch 128, không shuffle \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\fig{\linewidth}{augmentation_examples.png}
+\caption{Một ảnh gốc và các phiên bản sau augmentation (đã phóng lên $224\times224$).}\label{fig:aug}
+\end{figure}
+
+\textbf{Lý do thiết kế.}
+\begin{itemize}
+  \item \st{Phóng lên $224\times224$:} trọng số pretrained của cả hai mô hình được học ở $224\times224$. Riêng DeiT-Tiny
+        dùng patch $16\times16$; nếu giữ ảnh $32\times32$ thì chỉ còn 4 token, không đủ để attention hoạt động có ý nghĩa.
+  \item \st{Cùng kích thước, cùng augmentation, cùng chuẩn hoá cho cả 8 cấu hình} (kể cả from-scratch): khác biệt kết quả
+        chỉ đến từ ba yếu tố cần so sánh là kiến trúc, cách khởi tạo và mức đóng băng.
+  \item \st{Augmentation nhẹ:} crop + flip là chuẩn phổ biến cho CIFAR. Nhóm cố ý không dùng augmentation mạnh
+        (RandAugment, Mixup, \ldots) để không ưu ái riêng Transformer from-scratch, vốn hưởng lợi nhiều từ augmentation mạnh.
+        Đây là hạn chế có chủ đích và sẽ được thảo luận ở A1.2.
+\end{itemize}
+
+% ======================================================================= 4
+\section{Mô hình sử dụng}
+\begin{table}[H]
+\centering
+\caption{Hai mô hình đại diện cho hai họ kiến trúc (\code{config.py}, \code{models.py}).}\label{tab:models}
+\begin{tabularx}{\linewidth}{@{}P{2.5cm}P{4.6cm}P{2.2cm}L@{}}
+\toprule
+Họ & Mô hình (tên trong \code{timm}) & Tham số (head 100 lớp) & Lý do chọn \\\midrule
+CNN & ResNet-18~\cite{he2016} \newline \code{resnet18.a1\_in1k} & 11.227.812 & CNN chuẩn, nhỏ, có kết nối tắt (residual); baseline phổ biến nhất \\
+Transformer & DeiT-Tiny/16~\cite{touvron2021} \newline \code{deit\_tiny\_patch16\_224}\newline\code{.fb\_in1k} & 5.543.716 & Một trong các ViT nhỏ nhất có trọng số ImageNet-1k tốt, cùng cỡ với ResNet-18, chạy được trên GPU phổ thông \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Hai mô hình có cùng nguồn pretrained (chỉ ImageNet-1k, không dùng ImageNet-21k), lấy qua thư viện
+\code{timm}~\cite{timm}, và cùng bậc kích thước, để so sánh không bị lệch vì một bên được học trước trên nhiều dữ liệu hơn.
+Lớp phân loại cuối của cả hai được thay bằng lớp mới 100 đầu ra, khởi tạo ngẫu nhiên.
+
+% ======================================================================= 5
+\section{Protocol thí nghiệm}
+\subsection{Ma trận 8 thí nghiệm}
+\begin{table}[H]
+\centering
+\caption{8 cấu hình và số tham số trainable, đo bằng \code{smoke\_test.py} (\code{output/protocol\_table.json}).}\label{tab:matrix}
+\begin{tabularx}{\linewidth}{@{}lllLrr@{}}
+\toprule
+Cấu hình & Kiến trúc & Khởi tạo & Chế độ & Trainable & Tỉ lệ \\\midrule
+\code{resnet18\_scratch}  & ResNet-18 & Ngẫu nhiên  & Học từ đầu         & 11.227.812 & 100,0\% \\
+\code{resnet18\_head}     & ResNet-18 & ImageNet-1k & Chỉ train head     &     51.300 &   0,5\% \\
+\code{resnet18\_partial}  & ResNet-18 & ImageNet-1k & Đóng băng một phần & 10.544.740 &  93,9\% \\
+\code{resnet18\_full}     & ResNet-18 & ImageNet-1k & Fine-tune toàn bộ  & 11.227.812 & 100,0\% \\\midrule
+\code{deit\_tiny\_scratch} & DeiT-Tiny & Ngẫu nhiên  & Học từ đầu         &  5.543.716 & 100,0\% \\
+\code{deit\_tiny\_head}    & DeiT-Tiny & ImageNet-1k & Chỉ train head     &     19.300 &   0,4\% \\
+\code{deit\_tiny\_partial} & DeiT-Tiny & ImageNet-1k & Đóng băng một phần &  2.688.868 &  48,5\% \\
+\code{deit\_tiny\_full}    & DeiT-Tiny & ImageNet-1k & Fine-tune toàn bộ  &  5.543.716 & 100,0\% \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\textbf{Định nghĩa các mức đóng băng} (áp dụng trên bản pretrained, \code{models.py}):
+\begin{itemize}
+  \item \st{Chỉ train head} (linear probe): đóng băng toàn bộ backbone, chỉ học lớp phân loại cuối.
+  \item \st{Đóng băng một phần:} khoảng nửa đầu của mạng. ResNet-18 đóng băng \code{conv1}, \code{bn1}, \code{layer1},
+        \code{layer2} và train \code{layer3}, \code{layer4}, \code{fc}. DeiT-Tiny đóng băng \code{patch\_embed},
+        positional embedding, token CLS và 6/12 block đầu; train 6 block cuối, LayerNorm cuối và head.
+  \item \st{Fine-tune toàn bộ:} mọi tham số đều được cập nhật.
+\end{itemize}
+
+Hai mô hình được đóng băng cùng ``một nửa độ sâu'' (2/4 stage của ResNet-18, 6/12 block của DeiT-Tiny), nhưng tỉ lệ
+tham số trainable khác nhau: 93,9\% so với 48,5\%. Lý do là ResNet tập trung phần lớn tham số ở các stage sâu
+(\code{layer3}, \code{layer4}), còn các block của DeiT có kích thước bằng nhau. Nhóm sẽ báo cáo cả hai góc nhìn
+(độ sâu và số tham số) khi thảo luận ở A1.2. Với ResNet-18, các lớp BatchNorm thuộc phần bị đóng băng được giữ ở chế
+độ \code{eval} trong lúc train (\code{set\_train\_mode}), để thống kê pretrained không bị thay đổi.
+
+\subsection{Huấn luyện}
+\begin{table}[H]
+\centering
+\caption{Siêu tham số dự kiến cho A1.2 (\code{config.TRAIN\_HPARAMS}).}\label{tab:hparams}
+\begin{tabularx}{\linewidth}{@{}P{3.6cm}LL@{}}
+\toprule
+Thiết lập & From-scratch & Pretrained (3 chế độ) \\\midrule
+Optimizer & \multicolumn{2}{l}{AdamW, weight decay 0.05} \\
+Learning rate & $10^{-3}$ & $10^{-4}$ \\
+Lịch learning rate & \multicolumn{2}{l}{Warmup tuyến tính 1 epoch, sau đó cosine giảm về 0} \\
+Số epoch & 30 & 10 \\
+Loss & \multicolumn{2}{l}{Cross-entropy, label smoothing 0.1} \\
+Batch size / seed & \multicolumn{2}{l}{128 / 42} \\
+Chọn checkpoint & \multicolumn{2}{P{11.5cm}}{Epoch có validation accuracy cao nhất; sau đó đánh giá trên test đúng một lần} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Vòng lặp huấn luyện được tự viết bằng PyTorch trong \code{train.py}: xoá gradient $\rightarrow$ forward $\rightarrow$
+tính loss $\rightarrow$ backward $\rightarrow$ \code{optimizer.step()}. Thiết bị được chọn tự động theo thứ tự CUDA, MPS, CPU.
+From-scratch được học nhiều epoch hơn và với learning rate lớn hơn, vì mô hình phải học mọi thứ từ đầu.
+Để so sánh công bằng trong từng nhóm, các cấu hình cùng nhóm dùng chung siêu tham số.
+
+\subsection{Metric và phân tích sẽ báo cáo ở A1.2}
+\begin{itemize}
+  \item \st{Chất lượng:} top-1 accuracy và macro-F1 (\code{sklearn.metrics.f1\_score}) trên validation và test;
+        đường cong loss/accuracy theo epoch (\code{train.py} đã ghi đủ các giá trị này vào log JSON của mỗi lần chạy).
+  \item \st{Chi phí:} thời gian huấn luyện, số tham số trainable, bộ nhớ GPU đỉnh (\code{torch.cuda.max\_memory\_allocated}).
+  \item \st{Phân tích lỗi:} confusion matrix ở mức 20 siêu lớp (dễ đọc hơn ma trận $100\times100$), các cặp lớp hay nhầm
+        nhất và ảnh mẫu bị đoán sai của cấu hình tốt nhất mỗi họ. Dự đoán trên test được lưu sẵn
+        (\code{*\_test\_preds.json}) để phục vụ phân tích này.
+\end{itemize}
+
+\textbf{Câu hỏi cần trả lời và giả thuyết ban đầu} (sẽ kiểm chứng bằng số liệu, không coi là kết luận):
+\begin{enumerate}
+  \item \st{ViT có cần pretrain không?} Dự đoán DeiT-Tiny from-scratch kém hơn rõ rệt so với ResNet-18 from-scratch,
+        vì Transformer thiếu ``thiên kiến cục bộ'' của tích chập và CIFAR-100 chỉ có 45.000 ảnh train.
+  \item \st{Khi nào đóng băng có lợi?} Dự đoán đóng băng một phần đạt gần bằng fine-tune toàn bộ với ít tham số trainable
+        hơn. Chỉ train head có thể kém hơn, vì ảnh $32\times32$ phóng lên khác khá xa ảnh ImageNet.
+  \item \st{Chi phí so với chất lượng:} so sánh accuracy trên mỗi đơn vị thời gian huấn luyện giữa các cấu hình.
+\end{enumerate}
+
+% ======================================================================= 6
+\section{Kiểm tra pipeline ở mốc A1.1}
+Script \code{smoke\_test.py} tạo đủ 8 cấu hình, đếm tham số và chạy một bước forward + backward trên một batch 8 ảnh
+ngẫu nhiên $224\times224$. Script xác nhận các tham số bị đóng băng không nhận gradient, còn các tham số trainable thì có
+gradient. Cả 8 cấu hình đều đạt (cột ``Kiểm tra'' = OK trong \code{output/protocol\_table.md}; số tham số ở
+Bảng~\ref{tab:matrix}).
+
+Ngoài ra, nhóm chạy thử toàn bộ vòng lặp huấn luyện -- đánh giá trên tập con nhỏ (256 ảnh mỗi tập, 1 epoch, thiết bị
+\code{mps}) để chắc chắn pipeline chạy thông: \code{deit\_tiny\_partial} (khoảng 6 giây) và \code{resnet18\_head}
+(khoảng 3 giây). Huấn luyện, đánh giá validation, chọn checkpoint và đánh giá test đều chạy không lỗi; log nằm ở
+\code{output/smoke/}. Accuracy của các lần chạy này chỉ ở mức đoán ngẫu nhiên (khoảng 1--3\%) vì chỉ có 1 epoch trên
+256 ảnh: đây là kiểm tra code, \st{không phải kết quả thí nghiệm}.
+
+% ======================================================================= 7
+\section{Kế hoạch đến mốc A1.2}
+\begin{table}[H]
+\centering
+\caption{Lịch làm việc đến hạn A1.2 (09/11/2026).}\label{tab:plan}
+\begin{tabularx}{\linewidth}{@{}P{3.2cm}L@{}}
+\toprule
+Thời gian & Công việc \\\midrule
+27/10 -- 31/10 & Chạy 6 cấu hình pretrained (ResNet-18 và DeiT-Tiny $\times$ 3 mức đóng băng) trên Google Colab (GPU T4) \\
+01/11 -- 05/11 & Chạy 2 cấu hình from-scratch (dài nhất, 30 epoch); lưu log và checkpoint \\
+06/11 -- 09/11 & Tổng hợp bảng, vẽ biểu đồ, confusion matrix, phân tích lỗi, viết thảo luận; cập nhật báo cáo và landing page \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Nếu thời gian GPU không đủ, nhóm sẽ giảm số epoch from-scratch hoặc dùng tập con train có kiểm soát (giữ đủ 100 lớp),
+và ghi rõ trong báo cáo A1.2.
+
+% ======================================================================= 8
+\section{Sử dụng công cụ AI}
+Theo quy định liêm chính học thuật của môn học, nhóm ghi rõ: trợ lý AI (Claude) được dùng để hỗ trợ viết khung mã nguồn,
+soạn bố cục báo cáo và rà soát lỗi. Nhóm đã đọc, chạy kiểm tra, chỉnh sửa và chịu trách nhiệm về toàn bộ nội dung;
+mọi lựa chọn dataset, mô hình và protocol đều được nhóm hiểu và có thể giải thích.
+
+% ======================================================================= Tài liệu tham khảo
+\begin{thebibliography}{9}
+\bibitem{krizhevsky2009} A. Krizhevsky. \emph{Learning Multiple Layers of Features from Tiny Images}. Technical report, University of Toronto, 2009.
+\bibitem{he2016} K. He, X. Zhang, S. Ren, J. Sun. Deep Residual Learning for Image Recognition. \emph{CVPR}, 2016.
+\bibitem{dosovitskiy2021} A. Dosovitskiy et al. An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale. \emph{ICLR}, 2021.
+\bibitem{touvron2021} H. Touvron et al. Training data-efficient image transformers \& distillation through attention. \emph{ICML}, 2021.
+\bibitem{timm} R. Wightman. PyTorch Image Models (timm). \url{https://github.com/huggingface/pytorch-image-models}.
+\end{thebibliography}
+
+\end{document}
