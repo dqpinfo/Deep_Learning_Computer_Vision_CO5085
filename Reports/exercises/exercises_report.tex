@@ -1,0 +1,382 @@
+\documentclass[12pt]{article}
+
+% ============================================================
+% Báo cáo chung cho các bài tập E1-E3 (một file PDF duy nhất theo đề).
+% Compile: pdflatex (mặc định của Overleaf), xelatex hoặc tectonic đều được.
+% Cần logo-bk.png và thư mục figures/ đặt cùng thư mục với file .tex.
+% Số liệu lấy từ Exercise_1/output/report_metrics.json và
+% Exercise_2/output/report_metrics.json (sinh bởi report_metrics.py của mỗi bài).
+% ============================================================
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[utf8]{inputenc}
+  \usepackage[T5]{fontenc}
+  \usepackage{lmodern}
+\else
+  \usepackage{fontspec}
+\fi
+\usepackage[vietnamese]{babel}
+
+\usepackage[a4paper,margin=2.5cm,headheight=2cm,headsep=0.8cm]{geometry}
+\usepackage{graphicx,booktabs,tabularx,xltabular,longtable,array,xcolor,enumitem,amssymb,amsmath,multirow,caption}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{titlesec}
+\usepackage{float}
+\usepackage{hyperref}
+\hypersetup{hidelinks, pdftitle={E1-E3 - Phan loai anh MNIST: Softmax, MLP, CNN, MSA}}
+\usepackage{parskip}
+
+\graphicspath{{./}{figures/}}
+\captionsetup{labelfont=bf,skip=4pt}
+\setlist{nosep,leftmargin=*}
+\titleformat{\section}{\large\bfseries}{\thesection.}{0.4em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection.}{0.4em}{}
+\titlespacing*{\section}{0pt}{10pt}{4pt}\titlespacing*{\subsection}{0pt}{6pt}{2pt}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
+\renewcommand{\arraystretch}{1.15}
+\setlength{\emergencystretch}{3em}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\st}[1]{\textbf{#1}}
+\newcommand{\todo}[1]{\textcolor{red}{\textbf{[#1]}}}
+% Chèn hình nếu có file, nếu chưa upload thì hiện khung báo thiếu (để vẫn compile được)
+\newcommand{\fig}[2]{\IfFileExists{figures/#2}{\includegraphics[width=#1]{figures/#2}}{%
+  \fbox{\parbox{0.8\linewidth}{\centering\todo{Thiếu hình \detokenize{#2}}}}}}
+
+% ---------- Thông tin chung ----------
+\newcommand{\TenTruong}{Đại học Quốc gia Thành phố Hồ Chí Minh\\Trường Đại học Bách khoa\\Khoa Khoa học và Kỹ thuật Máy tính}
+\newcommand{\TenTruongHeader}{Ho Chi Minh University of Technology\\Faculty of Computer Science and Engineering}
+\newcommand{\TenMonHoc}{Học sâu và ứng dụng trong thị giác máy tính}
+\newcommand{\MaMonHoc}{CO5085}
+\newcommand{\TenBaoCao}{Bài tập E1 -- E3}
+\newcommand{\TenDeTai}{Phân loại chữ số viết tay MNIST:\\Softmax, MLP, CNN và Multi-Head Self-Attention}
+\newcommand{\GiangVien}{Thầy Lê Thành Sách\\Thầy Nguyễn Quốc Minh}
+\newcommand{\ThanhVien}{%
+  Đàm Quang Phục - 2570483\\
+  Hồ Bảo An - 2570164
+}
+\newcommand{\DiaDiemNgay}{Thành Phố Hồ Chí Minh, 10/2026}
+\newcommand{\FooterText}{\TenMonHoc\ -- \MaMonHoc}
+
+% ---------- Header / Footer ----------
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\fancyhead[L]{%
+  \parbox[t][\headheight][t]{\headwidth}{%
+    \vspace{0.2cm}
+    \begin{minipage}[b]{1.1cm}
+      \IfFileExists{logo-bk.png}{\includegraphics[width=1.1cm]{logo-bk.png}}{}
+    \end{minipage}%
+    \hspace{0.5em}%
+    \begin{minipage}[b]{8cm}
+      \small \TenTruongHeader
+    \end{minipage}%
+  }%
+}
+\fancyfoot[L]{\small \FooterText}
+\fancyfoot[R]{\small Page \thepage/\pageref{LastPage}}
+
+\fancypagestyle{plain}{%
+  \fancyhf{}
+  \renewcommand{\headrulewidth}{0pt}
+  \renewcommand{\footrulewidth}{0pt}
+}
+
+\begin{document}
+
+% ================= TRANG BÌA =================
+\begin{titlepage}
+\thispagestyle{plain}
+\begin{center}
+{\bfseries \TenTruong \par}
+\vspace{2em}
+
+\IfFileExists{logo-bk.png}{\includegraphics[width=3cm]{logo-bk.png}\\[1em]}{}
+
+\vspace{5em}
+
+{\LARGE \bfseries \TenMonHoc\ (\MaMonHoc) \par}
+\vspace{0.3em}
+\rule{0.85\textwidth}{0.5pt}
+
+\vspace{1em}
+{\Large \bfseries \TenBaoCao \par}
+\vspace{0.6em}
+{\large \TenDeTai \par}
+\vspace{0.3em}
+\rule{0.85\textwidth}{0.5pt}
+
+\vspace{5em}
+
+\noindent\begin{minipage}[t]{3.6cm}
+\raggedleft
+Giảng viên:\\[0.5em]
+\phantom{x}\\[0.5em]
+Thành viên nhóm:
+\end{minipage}%
+\hspace{0.6em}%
+\begin{minipage}[t]{8cm}
+\GiangVien\\[0.5em]
+\ThanhVien
+\end{minipage}
+
+\vspace{2em}
+{\footnotesize Mã nguồn: \url{https://github.com/dqpinfo/Deep_Learning_Computer_Vision_CO5085}\par}
+
+\vfill
+{\bfseries \DiaDiemNgay}
+\end{center}
+\end{titlepage}
+
+% ================= MỤC LỤC =================
+\tableofcontents
+\newpage
+
+\noindent\fcolorbox{black!35}{black!3}{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule}{
+\textbf{Phiên bản W9 (hạn 02/11/2026): E1 và E2.} Cả hai bài dùng chung tập \st{MNIST}. \st{E1} so sánh ba bộ phân loại
+Softmax, MLP và CNN: CNN đạt \st{98,91\%} trên 10.000 ảnh test với số tham số ít hơn MLP (105.962 so với 109.386).
+\st{E2} tự cài đặt Multi-Head Self-Attention (MSA), đối chiếu với \code{nn.MultiheadAttention} và thử hai cách tạo token
+(theo patch và theo hàng). MSA tự viết cho kết quả \st{trùng khớp tuyệt đối} với bản PyTorch khi dùng chung trọng số;
+cách tạo token theo hàng tốt hơn theo patch khoảng 2 điểm phần trăm. Mọi con số lấy từ \code{output/report\_metrics.json}
+của từng bài.}}
+
+% ======================================================================= 1
+\section{Quy định chung và dữ liệu}
+\subsection{Hình thức thực hiện}
+\begin{itemize}
+  \item Ba bài E1--E3 dùng \st{cùng một tập ảnh nhỏ} để các kết quả so sánh được với nhau.
+  \item Vòng lặp huấn luyện được \st{tự viết bằng PyTorch}~\cite{pytorch} trong \code{train.py} của mỗi bài: xoá gradient
+        $\rightarrow$ forward $\rightarrow$ tính loss $\rightarrow$ \code{backward()} $\rightarrow$ \code{optimizer.step()};
+        không dùng API huấn luyện cấp cao.
+  \item Mã nguồn tổ chức theo thư mục \code{Exercise\_1/}, \code{Exercise\_2/}, \code{Exercise\_3/}, mỗi thư mục có
+        \code{README.md} (môi trường, lệnh chạy), \code{dataset.py}, \code{models.py}, \code{train.py}, \code{evaluate.py}.
+\end{itemize}
+
+\subsection{Tập dữ liệu: MNIST}
+Nhóm chọn \st{MNIST}~\cite{lecun1998}: ảnh chữ số viết tay 0--9, ảnh xám $28\times28$, 10 lớp, gồm 60.000 ảnh train và
+10.000 ảnh test, gần cân bằng giữa các lớp. MNIST nằm trong danh sách tập được đề cho phép, nhỏ, tải nhanh qua
+\code{torchvision.datasets.MNIST} và huấn luyện được trên CPU. Nhờ vậy nhóm tập trung vào phần cài đặt mô hình (đặc biệt
+là MSA tự viết ở E2) thay vì chi phí tính toán. Tập được công bố bởi LeCun, Cortes và Burges, cho phép dùng tự do với yêu
+cầu trích dẫn.
+
+\begin{table}[H]
+\centering
+\caption{Cách dùng MNIST trong từng bài.}\label{tab:data}
+\begin{tabularx}{\linewidth}{@{}P{1.4cm}P{3.6cm}P{3.6cm}L@{}}
+\toprule
+Bài & Tập train & Tập test & Tiền xử lý \\\midrule
+E1 & 60.000 ảnh (toàn bộ) & 10.000 ảnh (toàn bộ) & \code{ToTensor} + \code{Normalize(0.5, 0.5)} (pixel về $[-1, 1]$) \\
+E2 & 5.000 ảnh đầu tiên & 1.000 ảnh đầu tiên (protocol gốc) và 10.000 ảnh (đánh giá bổ sung) & \code{ToTensor} (pixel trong $[0, 1]$) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+E2 dùng tập con 5.000 ảnh train để huấn luyện nhanh nhiều cấu hình attention trên CPU. Thứ tự ảnh trong MNIST vốn đã ngẫu
+nhiên, nên lấy các ảnh đầu tiên vẫn cho tập con đủ 10 lớp. Vì 1.000 ảnh test khá ít (sai số chuẩn của accuracy khoảng
+$\pm 1{,}1$ điểm phần trăm), báo cáo đánh giá thêm trên toàn bộ 10.000 ảnh test để kết luận đáng tin hơn.
+
+% ======================================================================= 2
+\section{E1 -- Phân loại ảnh: Softmax, MLP, CNN}
+\subsection{Mục tiêu}
+Xây dựng và so sánh ba bộ phân loại trên MNIST: Softmax trên vector ảnh đã làm phẳng, MLP trên vector làm phẳng và CNN.
+
+\subsection{Kiến trúc}
+\begin{table}[H]
+\centering
+\caption{Ba mô hình của E1 (\code{Exercise\_1/models.py}). Mọi mô hình trả về logits 10 lớp; softmax nằm trong hàm loss.}\label{tab:e1-models}
+\begin{tabularx}{\linewidth}{@{}P{2cm}LR{2.2cm}@{}}
+\toprule
+Mô hình & Cấu trúc & Tham số \\\midrule
+Softmax & Flatten $784$ $\rightarrow$ Linear$(784, 10)$ & 7.850 \\
+MLP & Flatten $784$ $\rightarrow$ Linear$(784,128)$ + ReLU $\rightarrow$ Linear$(128,64)$ + ReLU $\rightarrow$ Linear$(64,10)$ & 109.386 \\
+CNN & [Conv $3\times3$, 16 kênh + BatchNorm + ReLU + MaxPool $2\times2$] $\rightarrow$ [Conv $3\times3$, 32 kênh + BatchNorm + ReLU + MaxPool $2\times2$] $\rightarrow$ Flatten $32\times7\times7$ $\rightarrow$ Linear$(1568,64)$ + ReLU $\rightarrow$ Linear$(64,10)$ & 105.962 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Huấn luyện}
+Cả ba mô hình dùng chung thiết lập: loss cross-entropy, optimizer Adam với learning rate $10^{-3}$, batch 64, 5 epoch
+trên toàn bộ 60.000 ảnh train. Đánh giá trên 10.000 ảnh test bằng trọng số sau epoch cuối.
+
+\subsection{Kết quả}
+\begin{table}[H]
+\centering
+\caption{Kết quả E1 trên 10.000 ảnh test MNIST. Thời gian đo trên CPU Apple M1.}\label{tab:e1-results}
+\begin{tabularx}{\linewidth}{@{}Lrrrrrr@{}}
+\toprule
+Mô hình & Tham số & Train acc. & Test acc. & Macro-F1 & Số ảnh sai & 1 epoch train \\\midrule
+Softmax & 7.850 & 91,67\% & 91,08\% & 90,98\% & 892 & 2,5 giây \\
+MLP & 109.386 & 97,09\% & 96,97\% & 96,95\% & 303 & 2,7 giây \\
+CNN & 105.962 & 99,24\% & \st{98,91\%} & \st{98,90\%} & \st{109} & 12,7 giây \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\fig{\linewidth}{e1_curves.png}
+\caption{Loss và accuracy trên tập train qua 5 epoch (trục hoành đánh số epoch từ 0).}\label{fig:e1-curves}
+\end{figure}
+
+\subsection{Phân tích lỗi}
+\begin{table}[H]
+\centering
+\caption{Ba cặp nhầm lẫn thường gặp nhất của mỗi mô hình (nhãn thật $\rightarrow$ dự đoán, số ảnh).}\label{tab:e1-confusions}
+\begin{tabularx}{\linewidth}{@{}lLLL@{}}
+\toprule
+Mô hình & Thứ 1 & Thứ 2 & Thứ 3 \\\midrule
+Softmax & $2 \rightarrow 8$ (78) & $3 \rightarrow 5$ (62) & $4 \rightarrow 9$ (60) \\
+MLP & $7 \rightarrow 9$ (27) & $9 \rightarrow 4$ (18) & $8 \rightarrow 9$ (15) \\
+CNN & $5 \rightarrow 3$ (13) & $2 \rightarrow 7$ (10) & $9 \rightarrow 7$ (7) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\fig{0.62\linewidth}{e1_confusion_cnn.png}
+\caption{Confusion matrix của CNN trên 10.000 ảnh test.}\label{fig:e1-cm}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\fig{\linewidth}{e1_errors_softmax.png}\\[2pt]
+\fig{\linewidth}{e1_errors_cnn.png}
+\caption{Một số ảnh bị đoán sai: Softmax (trên) và CNN (dưới).}\label{fig:e1-errors}
+\end{figure}
+
+\subsection{Nhận xét}
+\begin{itemize}
+  \item \st{Thêm tầng ẩn phi tuyến giúp nhiều:} từ Softmax lên MLP, số ảnh sai giảm gần 3 lần (892 xuống 303). Softmax chỉ
+        vẽ được ranh giới tuyến tính trên 784 pixel, nên nhầm giữa các chữ số có nét chồng lên nhau như 2/8, 3/5, 4/9.
+  \item \st{CNN tốt nhất dù ít tham số hơn MLP:} 105.962 so với 109.386 tham số nhưng số ảnh sai chỉ còn khoảng một phần ba
+        (109 so với 303). Tích chập dùng chung trọng số trên mọi vị trí và giữ cấu trúc không gian 2D, trong khi Softmax và
+        MLP mất thông tin vị trí khi làm phẳng ảnh. Phần lớn tham số của CNN nằm ở lớp Linear$(1568, 64)$; hai lớp tích
+        chập chỉ có khoảng 4.900 tham số.
+  \item \st{Lỗi còn lại của CNN} chủ yếu là những ảnh mà người cũng dễ đọc nhầm: số 5 viết giống 3, số 2 có nét ngang ngắn
+        giống 7 (Hình~\ref{fig:e1-errors}).
+  \item \st{Không thấy overfitting rõ:} train accuracy và test accuracy chênh nhau dưới 0,6 điểm ở cả ba mô hình sau
+        5 epoch.
+  \item \st{Chi phí:} một epoch của CNN chậm hơn khoảng 5 lần so với Softmax/MLP trên CPU, đổi lại sai số giảm mạnh.
+\end{itemize}
+
+\textbf{Hạn chế.} Bài chưa tách tập validation: mô hình được đánh giá trên test bằng trọng số sau epoch cuối, không dùng
+test để chọn siêu tham số. Đường cong học chỉ có số liệu trên tập train. \code{train.py} chưa cố định seed, nên chạy lại có
+thể lệch vài phần mười điểm phần trăm.
+
+% ======================================================================= 3
+% ======================================================================= 3
+\section{E2 -- Transformer: MSA và tokenization}
+\subsection{Mục tiêu}
+Hiện thực Multi-Head Self-Attention từ các phép toán cơ bản và bằng module của PyTorch, thử nhiều cách biến ảnh thành
+chuỗi token, rồi phân loại trên cùng tập MNIST của E1.
+
+\subsection{MSA tự viết}\label{sec:msa}
+\code{MyMSA} (\code{Exercise\_2/models.py}) cài đặt cơ chế attention của Transformer~\cite{vaswani2017} và chỉ dùng \code{nn.Linear}, phép nhân ma trận và softmax. Với chuỗi token
+$X \in \mathbb{R}^{N \times C}$, $C = 64$ chiều và $h = 4$ head (mỗi head $d = C/h = 16$ chiều):
+\begin{align*}
+Q = X W_Q,\quad K = X W_K,\quad V = X W_V &\quad\text{(tách thành $h$ head, mỗi head $d$ chiều)}\\
+\text{head}_i = \operatorname{softmax}\!\left(\frac{Q_i K_i^\top}{\sqrt{d}}\right) V_i,\qquad
+\operatorname{MSA}(X) &= [\text{head}_1; \ldots; \text{head}_h]\, W_O
+\end{align*}
+
+Bản đối chiếu \code{PyTorchMSA} gọi \code{nn.MultiheadAttention(64, 4, batch\_first=True)}.
+
+\textbf{Kiểm tra tính đúng.} Nhóm chép trọng số của \code{nn.MultiheadAttention} (\code{in\_proj\_weight} tách thành
+$W_Q, W_K, W_V$, cùng \code{out\_proj}) sang \code{MyMSA} rồi so đầu ra trên một batch ngẫu nhiên kích thước
+$8 \times 17 \times 64$. Sai khác tuyệt đối lớn nhất là \st{0}. Để chắc chắn phép kiểm tra có tác dụng, nhóm cộng thêm
+$10^{-3}$ vào một phần tử của $W_K$: sai khác tăng lên khoảng $10^{-4}$. Vậy MSA tự viết tính \st{đúng cùng một hàm}
+với bản của PyTorch (\code{msa\_equivalence\_check} trong \code{report\_metrics.py}).
+
+\subsection{Cách tạo token và bộ phân loại}
+\begin{table}[H]
+\centering
+\caption{Hai cách biến ảnh $28\times28$ thành chuỗi token (embedding 64 chiều, có token CLS và positional embedding học được).}\label{tab:e2-tokens}
+\begin{tabularx}{\linewidth}{@{}P{3cm}LR{1.6cm}@{}}
+\toprule
+Tokenizer & Cách làm & Số token \\\midrule
+Patch (kiểu ViT~\cite{dosovitskiy2021}) & Chia ảnh thành lưới $4\times4$ ô, mỗi ô $7\times7 = 49$ pixel, chiếu tuyến tính lên 64 chiều & 16 + 1 CLS \\
+Row (hàng) & Mỗi hàng 28 pixel là một token, chiếu tuyến tính lên 64 chiều & 28 + 1 CLS \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Bộ phân loại \code{ImageTransformerClassifier} gồm: tokenizer $\rightarrow$ \st{một lớp MSA} $\rightarrow$ lấy embedding
+của token CLS $\rightarrow$ Linear$(64, 10)$. Mô hình cố ý giữ ở mức tối giản (không có LayerNorm, FFN hay kết nối tắt)
+để so sánh trực tiếp hai bản MSA và hai cách tạo token. Bốn cấu hình (2 tokenizer $\times$ 2 bản MSA) được huấn luyện
+giống nhau: Adam, learning rate $10^{-3}$, batch 64, 10 epoch trên 5.000 ảnh train.
+
+\subsection{Kết quả}
+\begin{table}[H]
+\centering
+\caption{Kết quả E2. Test 1k là protocol gốc của \code{evaluate.py}; test 10k là toàn bộ tập test MNIST. Cột cuối: thời gian một epoch huấn luyện (giây) trên CPU Apple M1.}\label{tab:e2-results}
+\begin{tabularx}{\linewidth}{@{}LrrrrrR{1.5cm}@{}}
+\toprule
+Cấu hình & Tham số & Train acc. & Test 1k & Test 10k & F1 10k & Epoch (s) \\\midrule
+Patch + MyMSA & 21.642 & 89,86\% & 85,10\% & 86,67\% & 86,56\% & 0,41 \\
+Patch + PyTorch MSA & 21.642 & 88,10\% & 85,70\% & 86,24\% & 86,05\% & 0,38 \\
+Row + MyMSA & 21.066 & 89,56\% & \st{88,90\%} & \st{88,47\%} & \st{88,18\%} & 0,41 \\
+Row + PyTorch MSA & 21.066 & 90,34\% & 85,40\% & 88,15\% & 88,09\% & 0,42 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\fig{\linewidth}{e2_curves.png}
+\caption{Loss và accuracy trên tập train của 4 cấu hình qua 10 epoch.}\label{fig:e2-curves}
+\end{figure}
+
+\subsection{Nhận xét}
+\begin{itemize}
+  \item \st{MSA tự viết và MSA của PyTorch tương đương:} cùng tokenizer, hai bản chênh nhau không quá 0,43 điểm trên
+        10.000 ảnh test. Khác biệt này đến từ khởi tạo ngẫu nhiên và thứ tự batch, không phải từ cài đặt, vì phép kiểm tra ở
+        mục~\ref{sec:msa} cho thấy hai bản tính cùng một hàm. Thời gian huấn luyện cũng gần như nhau.
+  \item \st{Token theo hàng tốt hơn token theo patch} khoảng 1,5--2 điểm trên test 10k, với số tham số tương đương
+        (khoảng 21 nghìn). Một lý do hợp lý: mỗi hàng giữ trọn một lát cắt ngang của nét chữ, và 28 token cho attention nhiều
+        vị trí để kết hợp hơn 16 token. Patch $7\times7$ thì cắt nét chữ thành các mảnh nhỏ rời rạc.
+  \item \st{Đánh giá trên 1.000 ảnh dễ gây hiểu nhầm:} trên test 1k, Row + PyTorch MSA (85,40\%) có vẻ kém hẳn Row + MyMSA
+        (88,90\%), nhưng trên 10.000 ảnh hai cấu hình chỉ chênh 0,32 điểm. Vì vậy kết luận của nhóm dựa trên test 10k.
+  \item \st{So với E1:} mô hình attention một lớp (khoảng 86--88\%) kém xa CNN của E1 (98,91\%). Nguyên nhân là mô hình chỉ
+        có một lớp attention, không có FFN, chỉ học trên 5.000 ảnh, và attention không có sẵn ``thiên kiến cục bộ'' như
+        tích chập nên cần nhiều dữ liệu hơn để học quan hệ giữa các vùng ảnh.
+\end{itemize}
+
+\textbf{Hạn chế và việc tiếp theo.} Đề khuyến nghị thử ba cách tạo token; nhóm hiện mới có hai (đạt mức tối thiểu).
+Cách thứ ba dự kiến là \st{CNN-stem} (dùng vài lớp tích chập rút feature map, mỗi vị trí là một token). Ngoài ra, nhóm có
+thể thêm LayerNorm, FFN và kết nối tắt để có một khối Transformer encoder đầy đủ, cố định seed, và tách tập validation.
+
+% ======================================================================= 4
+% ======================================================================= 4
+\section{E3 -- LSTM / GRU trên chuỗi ảnh}
+
+% ======================================================================= 5
+\section{Tái lập kết quả}
+Trong mỗi thư mục bài tập (sau khi cài thư viện theo \code{README.md}):
+\begin{itemize}
+  \item \code{python train.py}: huấn luyện và lưu trọng số, lịch sử train vào \code{output/}.
+  \item \code{python evaluate.py}: đánh giá và vẽ biểu đồ, confusion matrix, ảnh lỗi.
+  \item \code{python report\_metrics.py}: tính các số liệu dùng trong báo cáo này từ trọng số đã lưu (không huấn luyện lại
+        mô hình đã lưu; chỉ huấn luyện thử 1 epoch trên một mô hình mới để đo thời gian), kết quả ở
+        \code{output/report\_metrics.json}.
+\end{itemize}
+
+\section{Sử dụng công cụ AI}
+Theo quy định liêm chính học thuật của môn học, nhóm ghi rõ: trợ lý AI (Claude) được dùng để hỗ trợ viết script thu thập
+số liệu, soạn bố cục báo cáo và rà soát lỗi. Nhóm đã đọc, chạy kiểm tra, chỉnh sửa và chịu trách nhiệm về toàn bộ nội dung;
+mọi mô hình, số liệu và nhận xét đều được nhóm hiểu và có thể giải thích.
+
+% ======================================================================= Tài liệu tham khảo
+\begin{thebibliography}{9}
+\bibitem{lecun1998} Y. LeCun, L. Bottou, Y. Bengio, P. Haffner. Gradient-Based Learning Applied to Document Recognition. \emph{Proceedings of the IEEE}, 86(11), 1998.
+\bibitem{vaswani2017} A. Vaswani et al. Attention Is All You Need. \emph{NeurIPS}, 2017.
+\bibitem{dosovitskiy2021} A. Dosovitskiy et al. An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale. \emph{ICLR}, 2021.
+\bibitem{pytorch} A. Paszke et al. PyTorch: An Imperative Style, High-Performance Deep Learning Library. \emph{NeurIPS}, 2019.
+\end{thebibliography}
+
+\end{document}

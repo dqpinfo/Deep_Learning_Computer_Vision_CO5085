@@ -1,0 +1,121 @@
+{
+  "device": "cpu",
+  "train_size": 60000,
+  "test_size": 10000,
+  "models": {
+    "Softmax": {
+      "params": 7850,
+      "final_train_acc": 91.67333333333333,
+      "test_acc": 91.08000000000001,
+      "test_macro_f1": 90.97803680115891,
+      "test_errors": 892,
+      "per_class_acc": [
+        98.16,
+        97.0,
+        81.88,
+        85.74,
+        90.33,
+        89.57,
+        93.95,
+        92.02,
+        89.43,
+        92.27
+      ],
+      "top_confusions": [
+        {
+          "true": 2,
+          "pred": 8,
+          "count": 78
+        },
+        {
+          "true": 3,
+          "pred": 5,
+          "count": 62
+        },
+        {
+          "true": 4,
+          "pred": 9,
+          "count": 60
+        }
+      ],
+      "inference_sec_test": 0.37716491700848565,
+      "train_epoch_sec": 2.5286834170110524
+    },
+    "MLP": {
+      "params": 109386,
+      "final_train_acc": 97.09,
+      "test_acc": 96.97,
+      "test_macro_f1": 96.95244285278311,
+      "test_errors": 303,
+      "per_class_acc": [
+        98.57,
+        98.68,
+        97.0,
+        97.13,
+        97.86,
+        96.3,
+        97.7,
+        94.75,
+        95.17,
+        96.33
+      ],
+      "top_confusions": [
+        {
+          "true": 7,
+          "pred": 9,
+          "count": 27
+        },
+        {
+          "true": 9,
+          "pred": 4,
+          "count": 18
+        },
+        {
+          "true": 8,
+          "pred": 9,
+          "count": 15
+        }
+      ],
+      "inference_sec_test": 0.36399608399369754,
+      "train_epoch_sec": 2.745030333986506
+    },
+    "CNN": {
+      "params": 105962,
+      "final_train_acc": 99.23833333333333,
+      "test_acc": 98.91,
+      "test_macro_f1": 98.9012996130289,
+      "test_errors": 109,
+      "per_class_acc": [
+        98.88,
+        99.56,
+        97.97,
+        99.7,
+        99.29,
+        97.87,
+        98.85,
+        99.32,
+        99.18,
+        98.32
+      ],
+      "top_confusions": [
+        {
+          "true": 5,
+          "pred": 3,
+          "count": 13
+        },
+        {
+          "true": 2,
+          "pred": 7,
+          "count": 10
+        },
+        {
+          "true": 9,
+          "pred": 7,
+          "count": 7
+        }
+      ],
+      "inference_sec_test": 0.7685515000193845,
+      "train_epoch_sec": 12.69041737500811
+    }
+  }
+}

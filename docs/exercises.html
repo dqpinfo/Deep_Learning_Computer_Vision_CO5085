@@ -334,13 +334,12 @@ table.plain th { font-size: 13px; color: var(--ink-soft); font-weight: 600; text
     <main class="wrap">
         <section>
             <div class="section-head"><span class="num">00</span><h2>Dữ liệu dùng chung</h2></div>
-            <p class="lead">Nhóm chọn một trong các tập dưới đây và dùng xuyên suốt E1–E3. Tập cụ thể sẽ được ghi rõ tại đây khi chốt.</p>
+            <p class="lead">Nhóm dùng <strong>MNIST</strong> xuyên suốt E1–E3: chữ số viết tay 0–9, ảnh xám 28×28, 10 lớp, 60.000 ảnh train và 10.000 ảnh test. Tập nhỏ, huấn luyện được trên CPU, giúp nhóm tập trung vào phần cài đặt mô hình.</p>
             <div class="grid">
-                <div class="card"><h3>MNIST</h3><p>Chữ số viết tay, ảnh xám 28×28, 10 lớp.</p></div>
-                <div class="card"><h3>Fashion-MNIST</h3><p>Ảnh sản phẩm thời trang, 28×28, 10 lớp.</p></div>
-                <div class="card"><h3>CIFAR-10</h3><p>Ảnh màu 32×32, 10 lớp vật thể.</p></div>
+                <div class="card"><h3>E1 · toàn bộ MNIST</h3><p>Train 60.000 ảnh, test 10.000 ảnh, chuẩn hoá pixel về [−1, 1].</p></div>
+                <div class="card"><h3>E2 · tập con</h3><p>Train 5.000 ảnh; đánh giá trên 1.000 ảnh (protocol gốc) và toàn bộ 10.000 ảnh test.</p></div>
+                <div class="card"><h3>E3 · sắp tới</h3><p>Dùng lại MNIST, so sánh LSTM/GRU với MLP/CNN của E1.</p></div>
             </div>
-            <p class="lead" style="margin-top:14px">Có thể thay bằng KMNIST, SVHN hoặc EMNIST nếu nêu lý do trong báo cáo.</p>
         </section>
 
         <section>
@@ -365,6 +364,9 @@ table.plain th { font-size: 13px; color: var(--ink-soft); font-weight: 600; text
                     </ul>
                 </div>
             </div>
+            <div class="callout" style="margin-top:16px">
+                <strong>Kết quả trên 10.000 ảnh test:</strong> Softmax 91,08% · MLP 96,97% · <strong>CNN 98,91%</strong>. CNN có ít tham số hơn MLP (105.962 so với 109.386) nhưng chỉ sai 109 ảnh so với 303 ảnh của MLP.
+            </div>
             <div class="actions" style="margin-top:16px">
                 <a class="btn primary" href="https://github.com/dqpinfo/Deep_Learning_Computer_Vision_CO5085/tree/main/Exercise_1">Mã nguồn E1</a>
             </div>
@@ -383,7 +385,7 @@ table.plain th { font-size: 13px; color: var(--ink-soft); font-weight: 600; text
                     </ul>
                 </div>
                 <div class="card">
-                    <h3>Các kiểu token dự kiến</h3>
+                    <h3>Các kiểu token</h3>
                     <ul class="checklist">
                         <li>Patch theo lưới, có thể kèm token CLS</li>
                         <li>Pixel hoặc từng hàng ảnh làm một token</li>
@@ -395,6 +397,9 @@ table.plain th { font-size: 13px; color: var(--ink-soft); font-weight: 600; text
                         <li>Giữa các kiểu token: accuracy, thời gian, nhận xét</li>
                     </ul>
                 </div>
+            </div>
+            <div class="callout" style="margin-top:16px">
+                <strong>Kết quả trên 10.000 ảnh test:</strong> token theo hàng 88,2–88,5%, token theo patch 86,2–86,7%. MSA tự viết cho đầu ra trùng khớp với <code>nn.MultiheadAttention</code> khi dùng chung trọng số.
             </div>
             <div class="actions" style="margin-top:16px">
                 <a class="btn primary" href="https://github.com/dqpinfo/Deep_Learning_Computer_Vision_CO5085/tree/main/Exercise_2">Mã nguồn E2</a>
@@ -429,10 +434,10 @@ table.plain th { font-size: 13px; color: var(--ink-soft); font-weight: 600; text
         <section>
             <div class="section-head"><span class="num">—</span><h2>Báo cáo chung E1–E3</h2></div>
             <div class="callout">
-                <strong>Một file PDF duy nhất cho cả ba bài</strong>, mỗi bài một chương: dữ liệu và cách chia split, kiến trúc, huấn luyện, bảng số liệu, đường cong học và nhận xét. File được bổ sung dần: E1 + E2 ở W9, E3 ở W10. Seed, config và log được giữ lại để tái lập kết quả.
+                <strong>Một file PDF duy nhất cho cả ba bài</strong>, mỗi bài một chương: dữ liệu, kiến trúc, huấn luyện, bảng số liệu, đường cong học và nhận xét. Hiện đã có E1 và E2; E3 sẽ bổ sung ở hạn W10.
             </div>
             <div class="actions" style="margin-top:16px">
-                <a class="btn pending" href="#" aria-disabled="true">Báo cáo E1–E3 (cập nhật sau)</a>
+                <a class="btn primary" href="https://github.com/dqpinfo/Deep_Learning_Computer_Vision_CO5085/blob/main/Reports/exercises.pdf">Báo cáo E1–E3 (PDF)</a>
                 <a class="btn" href="index.html">← Về trang chủ</a>
             </div>
         </section>
