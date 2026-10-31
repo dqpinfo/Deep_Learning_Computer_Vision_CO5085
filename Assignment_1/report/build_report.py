@@ -1,7 +1,7 @@
 ####################################################################
 #   Build the A1.1 report (HTML -> PDF with headless Chrome)       #
 #   Reads output/eda/summary.json and output/protocol_table.json   #
-#   Output: Reports/A1_1_report.pdf                                #
+#   Output: report/A1_1_report_html.pdf (old HTML version)         #
 ####################################################################
 
 import base64
@@ -15,7 +15,7 @@ A1 = HERE.parent
 sys.path.insert(0, str(A1))
 import config  # noqa: E402
 
-REPORT_PDF = A1.parent / "Reports" / "A1_1_report.pdf"
+REPORT_PDF = HERE / "A1_1_report_html.pdf"
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 
 
