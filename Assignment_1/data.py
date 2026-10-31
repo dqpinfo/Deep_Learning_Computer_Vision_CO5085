@@ -8,6 +8,8 @@ import ssl
 import urllib.request
 
 import numpy as np
+import torch
+import torch.nn.functional as F
 from PIL import Image
 from torch.utils.data import DataLoader, Dataset, Subset
 from torchvision import transforms
@@ -82,23 +84,28 @@ class CIFAR100(Dataset):
 
 def train_transform():
     # Light augmentation, identical for every configuration:
-    # random crop with 4-pixel padding + horizontal flip at the native 32x32 resolution, then upscale to 224x224
+    # random crop with 4-pixel padding + horizontal flip at the native 32x32 resolution.
+    # The loader returns 32x32 tensors in [0, 1]; to_model_input() upscales them to 224x224 on the GPU.
     return transforms.Compose([
         transforms.RandomCrop(32, padding = 4),
         transforms.RandomHorizontalFlip(),
-        transforms.Resize(config.IMG_SIZE, interpolation = transforms.InterpolationMode.BICUBIC),
         transforms.ToTensor(),
-        transforms.Normalize(config.MEAN, config.STD),
     ])
 
 
 def eval_transform():
-    # Validation/test: no augmentation, only resize and normalize
-    return transforms.Compose([
-        transforms.Resize(config.IMG_SIZE, interpolation = transforms.InterpolationMode.BICUBIC),
-        transforms.ToTensor(),
-        transforms.Normalize(config.MEAN, config.STD),
-    ])
+    # Validation/test: no augmentation
+    return transforms.ToTensor()
+
+
+def to_model_input(images):
+    # Bicubic upscale 32x32 -> 224x224 and ImageNet normalization, done on the batch's device.
+    # Doing this on the GPU instead of in the DataLoader keeps the 2 CPU cores of Colab from being the bottleneck.
+    # Clamping to [0, 1] matches PIL's bicubic resize, which also clips the overshoot to the valid pixel range.
+    images = F.interpolate(images, size = config.IMG_SIZE, mode = "bicubic", align_corners = False).clamp_(0, 1)
+    mean = torch.tensor(config.MEAN, device = images.device).view(1, 3, 1, 1)
+    std = torch.tensor(config.STD, device = images.device).view(1, 3, 1, 1)
+    return (images - mean) / std
 
 
 def load_cifar100(train, transform = None):

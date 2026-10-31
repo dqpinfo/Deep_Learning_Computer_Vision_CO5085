@@ -229,4 +229,7 @@ Desktop.ini
 # Assignment 1: dataset tải tự động, checkpoint huấn luyện
 Assignment_1/data/
 Assignment_1/output/runs/*.pth
+Assignment_1/output/runs/*.tmp
+Assignment_1/output/smoke/*.pth
+Assignment_1/output/smoke/*.tmp
 Assignment_1/report/A1_report.html

@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import config
-from data import get_split, load_cifar100, train_transform
+from data import get_split, load_cifar100, to_model_input, train_transform
 
 EDA_DIR = config.OUTPUT_DIR / "eda"
 
@@ -69,7 +69,7 @@ def plot_augmentation(train_set):
     axes[0].imshow(image)
     axes[0].set_title("Gốc 32x32")
     for ax in axes[1:]:
-        aug = tf(image).permute(1, 2, 0).numpy() * std + mean
+        aug = to_model_input(tf(image).unsqueeze(0))[0].permute(1, 2, 0).numpy() * std + mean
         ax.imshow(np.clip(aug, 0, 1))
         ax.set_title("Sau augmentation")
     for ax in axes:

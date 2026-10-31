@@ -31,7 +31,14 @@ A1.1 chỉ yêu cầu **chốt dữ liệu và kế hoạch thí nghiệm**, ch�
 
 ## Mốc A1.2 (09/11/2026) — So sánh cuối
 
-Chạy đủ 8 thí nghiệm bằng `train.py`, sau đó lập bảng số liệu (accuracy, macro-F1, thời gian, số tham số trainable), biểu đồ, confusion matrix và phần thảo luận. Phần huấn luyện thật nên chạy trên GPU, ví dụ Google Colab T4, vì máy Mac M1 8 GB quá chậm cho 8 lần huấn luyện ở độ phân giải 224×224.
+Chạy đủ 8 thí nghiệm, sau đó lập bảng số liệu (accuracy, macro-F1, thời gian, số tham số trainable, bộ nhớ GPU), biểu đồ, confusion matrix và phần thảo luận.
+
+Máy Mac M1 8 GB quá chậm cho 8 lần huấn luyện ở 224×224 (khoảng 15 phút cho một epoch fine-tune toàn bộ), nên phần huấn luyện thật chạy trên **Google Colab (GPU T4)** bằng notebook [`colab_a1_2.ipynb`](colab_a1_2.ipynb). Để chạy nhanh và an toàn trên Colab:
+
+- **Phóng ảnh trên GPU:** DataLoader chỉ làm augmentation ở 32×32 (crop + lật). Bước phóng to bicubic lên 224×224 và chuẩn hóa ImageNet (`to_model_input` trong `data.py`) chạy trên GPU, để 2 lõi CPU của Colab không làm chậm cả quá trình. Kết quả gần như trùng với cách phóng ảnh bằng PIL trước đây (lệch trung bình khoảng 1 mức xám), nên protocol A1.1 không đổi.
+- **Mixed precision (AMP, fp16)** khi chạy trên CUDA, nhanh hơn khoảng 2 lần.
+- **Checkpoint sau mỗi epoch:** nếu Colab bị ngắt, chạy lại đúng lệnh cũ sẽ tiếp tục từ epoch cuối cùng, cho kết quả giống hệt như chạy liền một mạch.
+- **Đo chi phí:** thời gian train mỗi epoch, bộ nhớ GPU cao nhất và tốc độ dự đoán (ảnh/giây) được ghi vào log JSON của từng thí nghiệm.
 
 ## Cấu trúc thư mục
 
@@ -40,7 +47,9 @@ Assignment_1/
 ├── config.py          # Cấu hình chung: seed, split, kích thước ảnh, 8 thí nghiệm, siêu tham số
 ├── data.py            # Tải CIFAR-100, chia train/val/test, augmentation, DataLoader
 ├── models.py          # Tạo ResNet-18 / DeiT-Tiny, các kiểu đóng băng
-├── train.py           # Vòng lặp huấn luyện + đánh giá tự viết cho một cấu hình
+├── train.py           # Vòng lặp huấn luyện + đánh giá tự viết cho một cấu hình (AMP, checkpoint, chạy tiếp)
+├── run_all.py         # Chạy lần lượt 8 thí nghiệm, bỏ qua thí nghiệm đã xong
+├── colab_a1_2.ipynb   # Notebook chạy 8 thí nghiệm trên Google Colab, lưu log vào Google Drive
 ├── eda.py             # Khám phá dữ liệu, xuất hình vào output/eda/
 ├── smoke_test.py      # Kiểm tra nhanh 8 cấu hình, xuất output/protocol_table.md
 ├── splits/            # File split cố định (seed 42) dùng chung cho mọi thí nghiệm
@@ -62,6 +71,9 @@ python eda.py                                         # EDA -> output/eda/
 python smoke_test.py                                  # Kiểm tra 8 cấu hình -> output/protocol_table.md
 python train.py --exp resnet18_head --subset 512 --epochs 1   # Chạy thử nhanh pipeline
 python train.py --exp deit_tiny_partial               # Huấn luyện thật một cấu hình (A1.2)
+python run_all.py                                     # Huấn luyện cả 8 cấu hình -> output/runs/
 ```
+
+Trên Google Colab: mở `colab_a1_2.ipynb` (File → Open notebook → GitHub, dán link repo), chọn **Runtime → T4 GPU** rồi **Run all**. Log được lưu vào `MyDrive/CO5085_A1/runs`; nếu bị ngắt, chỉ cần **Run all** lại.
 
 Tên 8 cấu hình: `resnet18_scratch`, `resnet18_head`, `resnet18_partial`, `resnet18_full`, `deit_tiny_scratch`, `deit_tiny_head`, `deit_tiny_partial`, `deit_tiny_full`.
