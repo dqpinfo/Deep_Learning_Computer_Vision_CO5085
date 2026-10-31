@@ -373,7 +373,7 @@ table.plain th { font-size: 13px; color: var(--ink-soft); font-weight: 600; text
                 <table class="plain">
                     <tr><th>Cách huấn luyện</th><th>ResNet-18 · trainable</th><th>DeiT-Tiny · trainable</th></tr>
                     <tr><td>Học từ đầu (from-scratch)</td><td>11.227.812 (100%)</td><td>5.543.716 (100%)</td></tr>
-                    <tr><td>Pretrained · chỉ train head</td><td>51.300 (0,5%)</td><td>19.300 (0,4%)</td></tr>
+                    <tr><td>Pretrained · chỉ train head</td><td>51.300 (0,5%)</td><td>19.300 (0,3%)</td></tr>
                     <tr><td>Pretrained · đóng băng nửa đầu</td><td>10.544.740 (93,9%)</td><td>2.688.868 (48,5%)</td></tr>
                     <tr><td>Pretrained · fine-tune toàn bộ</td><td>11.227.812 (100%)</td><td>5.543.716 (100%)</td></tr>
                 </table>
@@ -384,7 +384,44 @@ table.plain th { font-size: 13px; color: var(--ink-soft); font-weight: 600; text
         </section>
 
         <section>
-            <div class="section-head"><span class="num">04</span><h2>Hai mốc nộp</h2></div>
+            <div class="section-head"><span class="num">04</span><h2>Kết quả A1.2</h2></div>
+            <p class="lead">Cả 8 thí nghiệm chạy đủ protocol trên Google Colab (GPU Tesla T4). Test accuracy đo một lần trên 10.000 ảnh test, bằng checkpoint có validation accuracy cao nhất.</p>
+            <div class="table-wrap card">
+                <table class="plain">
+                    <tr><th>Cách huấn luyện</th><th>ResNet-18 · test acc</th><th>DeiT-Tiny · test acc</th><th>Thời gian train (ResNet / DeiT)</th></tr>
+                    <tr><td>Học từ đầu (30 epoch)</td><td>67,46%</td><td>48,48%</td><td>37,0 / 32,9 phút</td></tr>
+                    <tr><td>Pretrained · chỉ train head</td><td>51,02%</td><td>65,11%</td><td>3,9 / 3,9 phút</td></tr>
+                    <tr><td>Pretrained · đóng băng nửa đầu</td><td>73,67%</td><td>81,31%</td><td>6,0 / 7,2 phút</td></tr>
+                    <tr><td>Pretrained · fine-tune toàn bộ</td><td>74,71%</td><td><strong>85,02%</strong></td><td>12,3 / 11,0 phút</td></tr>
+                </table>
+            </div>
+            <div class="grid" style="margin-top:16px">
+                <div class="card"><h3>ViT cần pretrain</h3><p>Học từ đầu, DeiT-Tiny kém ResNet-18 19 điểm và overfit nặng. Dùng trọng số pretrained, DeiT-Tiny tăng 36,5 điểm và vượt ResNet-18 ở cả ba mức đóng băng.</p></div>
+                <div class="card"><h3>Đóng băng một phần</h3><p>Với ResNet-18 chỉ kém fine-tune toàn bộ 1 điểm mà train nhanh gấp đôi. Với DeiT-Tiny kém 3,7 điểm. Chỉ train head kém xa ở cả hai họ.</p></div>
+                <div class="card"><h3>Lỗi thường gặp</h3><p>Gần một nửa số ảnh sai bị nhầm sang lớp cùng siêu lớp: girl / woman, maple / oak tree, seal / otter. DeiT-Tiny tốt hơn ở cả 20 siêu lớp, nhất là các nhóm động vật.</p></div>
+            </div>
+            <div class="card" style="margin-top:16px">
+                <img src="assets/a1/test_acc_by_mode.png" alt="Biểu đồ cột test accuracy của 8 cấu hình, nhóm theo kiến trúc" style="width:100%;height:auto;border-radius:8px">
+                <p style="margin-top:10px">Test accuracy theo kiến trúc và cách huấn luyện.</p>
+            </div>
+            <div class="card" style="margin-top:16px">
+                <img src="assets/a1/learning_curves.png" alt="Đường cong validation và train accuracy theo epoch của 8 cấu hình" style="width:100%;height:auto;border-radius:8px">
+                <p style="margin-top:10px">Validation accuracy (trên) và train accuracy (dưới) theo epoch. Bản pretrained gần hội tụ sau 3–5 epoch; bản học từ đầu đạt gần 100% trên train nhưng chỉ 48–68% trên validation.</p>
+            </div>
+            <div class="split" style="margin-top:16px">
+                <div class="card">
+                    <img src="assets/a1/accuracy_vs_cost.png" alt="Test accuracy theo thời gian huấn luyện và theo số tham số trainable" style="width:100%;height:auto;border-radius:8px">
+                    <p style="margin-top:10px">Chất lượng so với chi phí: fine-tune DeiT-Tiny vừa chính xác nhất vừa nhanh hơn fine-tune ResNet-18.</p>
+                </div>
+                <div class="card">
+                    <img src="assets/a1/superclass_gap.png" alt="Chênh lệch accuracy theo 20 siêu lớp giữa DeiT-Tiny và ResNet-18" style="width:100%;height:auto;border-radius:8px">
+                    <p style="margin-top:10px">Chênh lệch accuracy theo siêu lớp giữa hai cấu hình tốt nhất (dương: DeiT-Tiny tốt hơn).</p>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <div class="section-head"><span class="num">05</span><h2>Hai mốc nộp</h2></div>
             <div class="split">
                 <div class="card">
                     <div class="pills"><span class="pill">A1.1 · 26/10/2026</span><span class="status done">Đã hoàn thành</span></div>
@@ -392,14 +429,15 @@ table.plain th { font-size: 13px; color: var(--ink-soft); font-weight: 600; text
                     <p>Chốt CIFAR-100, split, augmentation, hai mô hình và kế hoạch 8 thí nghiệm. Đã kiểm tra pipeline: cả 8 cấu hình tạo được, phần đóng băng đúng, vòng huấn luyện chạy thông.</p>
                 </div>
                 <div class="card">
-                    <div class="pills"><span class="pill">A1.2 · 09/11/2026</span><span class="status">Sắp tới</span></div>
+                    <div class="pills"><span class="pill">A1.2 · 09/11/2026</span><span class="status done">Đã hoàn thành</span></div>
                     <h3 style="margin-top:10px">So sánh hoàn chỉnh</h3>
-                    <p>Chạy đủ 8 thí nghiệm trên GPU, lập bảng và biểu đồ, phân tích lỗi, thảo luận khi nào đóng băng có lợi và ViT cần pretrain đến mức nào.</p>
+                    <p>Đã chạy đủ 8 thí nghiệm trên GPU T4, lập bảng và biểu đồ, phân tích lỗi theo siêu lớp, thảo luận khi nào đóng băng có lợi và ViT cần pretrain đến mức nào.</p>
                 </div>
             </div>
             <div class="actions" style="margin-top:16px">
                 <a class="btn primary" href="https://github.com/dqpinfo/Deep_Learning_Computer_Vision_CO5085/tree/main/Assignment_1">Mã nguồn A1</a>
-                <a class="btn primary" href="https://github.com/dqpinfo/Deep_Learning_Computer_Vision_CO5085/blob/main/Reports/A1_report.pdf">Báo cáo PDF (A1.1)</a>
+                <a class="btn primary" href="https://github.com/dqpinfo/Deep_Learning_Computer_Vision_CO5085/blob/main/Reports/A1_report.pdf">Báo cáo PDF (A1.1 + A1.2)</a>
+                <a class="btn" href="https://github.com/dqpinfo/Deep_Learning_Computer_Vision_CO5085/blob/main/Reports/A1_1_report.pdf">Bản nộp A1.1</a>
                 <a class="btn pending" href="#" aria-disabled="true">Video demo (cập nhật sau)</a>
                 <a class="btn" href="index.html">← Về trang chủ</a>
             </div>

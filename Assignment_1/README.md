@@ -27,7 +27,7 @@ A1.1 chỉ yêu cầu **chốt dữ liệu và kế hoạch thí nghiệm**, ch�
 3. **Mô tả DataLoader và augmentation** (`data.py`).
 4. **Liệt kê mô hình CNN và Transformer**, cùng kế hoạch from-scratch / pretrained / đóng băng (`config.py`, `models.py`).
 5. **Kiểm tra pipeline**: tạo đủ 8 cấu hình, đếm tham số, chạy thử một bước huấn luyện, kiểm tra phần đóng băng đúng (`smoke_test.py`), và chạy thử vòng huấn luyện trên tập con nhỏ (`train.py --subset`).
-6. **Báo cáo A1.1**: [`Reports/A1_report.pdf`](../Reports/A1_report.pdf).
+6. **Báo cáo A1.1** (bản nộp mốc A1.1): [`Reports/A1_1_report.pdf`](../Reports/A1_1_report.pdf).
 
 ## Mốc A1.2 (09/11/2026) — So sánh cuối
 
@@ -40,6 +40,29 @@ Máy Mac M1 8 GB quá chậm cho 8 lần huấn luyện ở 224×224 (khoảng 1
 - **Checkpoint sau mỗi epoch:** nếu Colab bị ngắt, chạy lại đúng lệnh cũ sẽ tiếp tục từ epoch cuối cùng, cho kết quả giống hệt như chạy liền một mạch.
 - **Đo chi phí:** thời gian train mỗi epoch, bộ nhớ GPU cao nhất và tốc độ dự đoán (ảnh/giây) được ghi vào log JSON của từng thí nghiệm.
 
+## Kết quả A1.2
+
+Cả 8 thí nghiệm đã chạy đủ protocol trên Google Colab (GPU Tesla T4). Test accuracy đánh giá một lần trên 10.000 ảnh test, bằng checkpoint có validation accuracy cao nhất:
+
+| Cấu hình | Test acc (%) | Macro-F1 (%) | Train (phút) | Tham số trainable |
+|---|---:|---:|---:|---:|
+| `resnet18_scratch` | 67,46 | 67,50 | 37,0 | 11.227.812 |
+| `resnet18_head` | 51,02 | 49,24 | 3,9 | 51.300 |
+| `resnet18_partial` | 73,67 | 73,42 | 6,0 | 10.544.740 |
+| `resnet18_full` | 74,71 | 74,48 | 12,3 | 11.227.812 |
+| `deit_tiny_scratch` | 48,48 | 48,01 | 32,9 | 5.543.716 |
+| `deit_tiny_head` | 65,11 | 64,72 | 3,9 | 19.300 |
+| `deit_tiny_partial` | 81,31 | 81,30 | 7,2 | 2.688.868 |
+| `deit_tiny_full` | **85,02** | **85,04** | 11,0 | 5.543.716 |
+
+Ba điều rút ra:
+
+- **ViT cần pretrain hơn CNN rất nhiều.** Học từ đầu, DeiT-Tiny kém ResNet-18 19 điểm; dùng trọng số pretrained, DeiT-Tiny vượt ResNet-18 ở cả ba mức đóng băng.
+- **Đóng băng một phần** gần bằng fine-tune toàn bộ với ResNet-18 (kém 1 điểm, nhanh gấp đôi) nhưng kém 3,7 điểm với DeiT-Tiny. Chỉ train head kém xa ở cả hai.
+- **Gần một nửa số lỗi là nhầm giữa các lớp cùng siêu lớp** (girl / woman, maple / oak tree, seal / otter).
+
+Báo cáo đầy đủ (A1.1 + A1.2): [`Reports/A1_report.pdf`](../Reports/A1_report.pdf). Log JSON và dự đoán test của từng thí nghiệm nằm trong `output/runs/`; bảng, biểu đồ và phân tích lỗi nằm trong `output/a1_2/`.
+
 ## Cấu trúc thư mục
 
 ```text
@@ -49,6 +72,7 @@ Assignment_1/
 ├── models.py          # Tạo ResNet-18 / DeiT-Tiny, các kiểu đóng băng
 ├── train.py           # Vòng lặp huấn luyện + đánh giá tự viết cho một cấu hình (AMP, checkpoint, chạy tiếp)
 ├── run_all.py         # Chạy lần lượt 8 thí nghiệm, bỏ qua thí nghiệm đã xong
+├── analyze.py         # Tổng hợp log 8 thí nghiệm: bảng, biểu đồ, phân tích lỗi -> output/a1_2/, report/generated/
 ├── colab_a1_2.ipynb   # Notebook chạy 8 thí nghiệm trên Google Colab, lưu log vào Google Drive
 ├── eda.py             # Khám phá dữ liệu, xuất hình vào output/eda/
 ├── smoke_test.py      # Kiểm tra nhanh 8 cấu hình, xuất output/protocol_table.md
@@ -72,7 +96,10 @@ python smoke_test.py                                  # Kiểm tra 8 cấu hình
 python train.py --exp resnet18_head --subset 512 --epochs 1   # Chạy thử nhanh pipeline
 python train.py --exp deit_tiny_partial               # Huấn luyện thật một cấu hình (A1.2)
 python run_all.py                                     # Huấn luyện cả 8 cấu hình -> output/runs/
+python analyze.py                                     # Bảng, biểu đồ, phân tích lỗi cho báo cáo A1.2
 ```
+
+Báo cáo đầy đủ (A1.1 + A1.2) là `report/A1_report.tex`; mọi số liệu A1.2 trong báo cáo được chèn tự động từ `report/generated/` do `analyze.py` sinh ra.
 
 Trên Google Colab: mở `colab_a1_2.ipynb` (File → Open notebook → GitHub, dán link repo), chọn **Runtime → T4 GPU** rồi **Run all**. Log được lưu vào `MyDrive/CO5085_A1/runs`; nếu bị ngắt, chỉ cần **Run all** lại.
 
