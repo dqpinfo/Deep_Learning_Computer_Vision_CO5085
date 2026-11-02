@@ -20,7 +20,7 @@ https://dqpinfo.github.io/Deep_Learning_Computer_Vision_CO5085/
 | :---: | --- | :---: |
 | 19/10/2026 | Thiết lập GitHub Pages (khung trang) | Đã hoàn thành |
 | 26/10/2026 | Nộp bài theo tiến độ A1.1 (Dataset + protocol) | Đã hoàn thành |
-| 02/11/2026 | Nộp bài theo tiến độ A2.1 (Chủ đề + paper + dữ liệu), bài tập E1, E2 | Đang thực hiện |
+| 02/11/2026 | Nộp bài theo tiến độ A2.1 (Chủ đề + paper + dữ liệu), bài tập E1, E2 | Đã hoàn thành |
 | 09/11/2026 | Nộp bài theo tiến độ A1.2 (So sánh cuối), bài tập E3 | Đang thực hiện |
 | 16/11/2026 | Nộp bài theo tiến độ A2.2 (Cài đặt + bài viết paper) | Đang thực hiện |
 
@@ -31,7 +31,7 @@ Deep_Learning_Computer_Vision_CO5085/
 ├── Exercise_2/                 # Bài tập E2
 ├── Exercise_3/                 # Bài tập E3
 ├── Assignment_1/               # Bài tập lớn A1
-├── Assignment_2/               # Bài tập lớn A2
+├── Assignment_2/               # Bài tập lớn A2: phân đoạn 38 lớp Oxford-IIIT Pet, U-Net vs SegFormer
 ├── Reports/                    # Thư mục chứa các file báo cáo
 ├── docs/                       # GitHub Pages
 ├── README.md                   # Mô tả chung về repository
