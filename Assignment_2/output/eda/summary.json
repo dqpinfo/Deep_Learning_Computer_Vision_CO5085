@@ -1,0 +1,154 @@
+{
+  "num_images": 7349,
+  "num_classes": 38,
+  "split_sizes": {
+    "train": 3303,
+    "val": 370,
+    "test": 3662
+  },
+  "species_counts": {
+    "train": {
+      "cat": 1065,
+      "dog": 2238
+    },
+    "val": {
+      "cat": 120,
+      "dog": 250
+    },
+    "test": {
+      "cat": 1181,
+      "dog": 2481
+    }
+  },
+  "images_per_breed": {
+    "train": {
+      "min": 80,
+      "max": 90
+    },
+    "val": {
+      "min": 10,
+      "max": 10
+    },
+    "test": {
+      "min": 88,
+      "max": 100
+    }
+  },
+  "width": {
+    "min": 114.0,
+    "median": 500.0,
+    "mean": 437.2374,
+    "max": 3264.0
+  },
+  "height": {
+    "min": 103.0,
+    "median": 375.0,
+    "mean": 391.3873,
+    "max": 2606.0
+  },
+  "image_modes": {
+    "RGB": 7346,
+    "RGBA": 3
+  },
+  "trimap_size_mismatch": 0,
+  "trimap_values": [
+    1,
+    2,
+    3
+  ],
+  "excluded_empty_trimap": [
+    "Egyptian_Mau_162",
+    "Egyptian_Mau_165",
+    "Egyptian_Mau_196",
+    "Egyptian_Mau_20",
+    "Persian_259",
+    "japanese_chin_199",
+    "keeshond_7",
+    "leonberger_18",
+    "miniature_pinscher_14",
+    "saint_bernard_108",
+    "saint_bernard_15",
+    "saint_bernard_60",
+    "saint_bernard_78",
+    "wheaten_terrier_195"
+  ],
+  "pixel_fraction_pet": {
+    "min": 0.0,
+    "median": 0.2740969696969697,
+    "mean": 0.2998,
+    "max": 0.9467946666666667
+  },
+  "pixel_fraction_background": {
+    "min": 0.0006293333333333333,
+    "median": 0.5961861861861862,
+    "mean": 0.5818,
+    "max": 1.0
+  },
+  "pixel_fraction_border": {
+    "min": 0.0,
+    "median": 0.113568,
+    "mean": 0.1184,
+    "max": 0.4484053333333333
+  },
+  "train_pixel_share": {
+    "background": 0.6615,
+    "breed_min": 0.0037,
+    "breed_max": 0.0152
+  },
+  "pixel_stats_train": {
+    "mean": [
+      0.4652,
+      0.4301,
+      0.3819
+    ],
+    "std": [
+      0.2651,
+      0.2599,
+      0.2663
+    ],
+    "images": 500
+  },
+  "breeds": {
+    "cat": [
+      "Abyssinian",
+      "Bengal",
+      "Birman",
+      "Bombay",
+      "British_Shorthair",
+      "Egyptian_Mau",
+      "Maine_Coon",
+      "Persian",
+      "Ragdoll",
+      "Russian_Blue",
+      "Siamese",
+      "Sphynx"
+    ],
+    "dog": [
+      "american_bulldog",
+      "american_pit_bull_terrier",
+      "basset_hound",
+      "beagle",
+      "boxer",
+      "chihuahua",
+      "english_cocker_spaniel",
+      "english_setter",
+      "german_shorthaired",
+      "great_pyrenees",
+      "havanese",
+      "japanese_chin",
+      "keeshond",
+      "leonberger",
+      "miniature_pinscher",
+      "newfoundland",
+      "pomeranian",
+      "pug",
+      "saint_bernard",
+      "samoyed",
+      "scottish_terrier",
+      "shiba_inu",
+      "staffordshire_bull_terrier",
+      "wheaten_terrier",
+      "yorkshire_terrier"
+    ]
+  }
+}

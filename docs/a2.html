@@ -322,10 +322,10 @@ table.plain th { font-size: 13px; color: var(--ink-soft); font-weight: 600; text
     <div class="hero">
         <div class="wrap">
             <span class="eyebrow">Bài tập lớn · A2</span>
-            <h1>Một bài toán thị giác máy tính, một paper, một pipeline chạy được</h1>
-            <p>Nhóm chọn một bài toán CV ngoài phân loại ảnh thuần tuý, dựng pipeline huấn luyện/đánh giá, đồng thời đọc kỹ một paper liên quan và đặt nó cạnh kết quả thực nghiệm của chính nhóm.</p>
+            <h1>Phân đoạn ảnh thú cưng 38 lớp: U-Net hay SegFormer?</h1>
+            <p>Dạy máy tô từng điểm ảnh trong ảnh chó mèo: đâu là nền, đâu là con vật và con vật thuộc giống nào trong 37 giống. Nhóm so sánh một mô hình CNN với một mô hình Transformer và phân tích paper SegFormer (NeurIPS 2021).</p>
             <div class="meta">
-                <span class="chip">A2.1: 02/11/2026</span>
+                <span class="chip">A2.1: 02/11/2026 · đã xong</span>
                 <span class="chip">A2.2: 16/11/2026</span>
             </div>
         </div>
@@ -337,100 +337,140 @@ table.plain th { font-size: 13px; color: var(--ink-soft); font-weight: 600; text
             <div class="table-wrap card">
                 <table class="plain">
                     <tr><th>Hạng mục</th><th>Lựa chọn của nhóm</th></tr>
-                    <tr><td>Chủ đề</td><td>Đang chốt (công bố ở mốc A2.1)</td></tr>
-                    <tr><td>Paper phân tích</td><td>Đang chốt — citation và link sẽ cập nhật</td></tr>
-                    <tr><td>Tập dữ liệu</td><td>Đang chốt</td></tr>
-                    <tr><td>Metric</td><td>Theo bài toán đã chọn</td></tr>
+                    <tr><td>Chủ đề</td><td><strong>Phân đoạn ngữ nghĩa 38 lớp</strong> trên ảnh chó mèo: mỗi điểm ảnh được gán là nền hoặc một trong 37 giống (12 giống mèo, 25 giống chó)</td></tr>
+                    <tr><td>Paper phân tích</td><td>E. Xie, W. Wang, Z. Yu, A. Anandkumar, J. M. Alvarez, P. Luo. <em>SegFormer: Simple and Efficient Design for Semantic Segmentation with Transformers.</em> NeurIPS 2021. <a href="https://arxiv.org/abs/2105.15203">arXiv:2105.15203</a> · <a href="https://github.com/NVlabs/SegFormer">mã nguồn chính thức</a></td></tr>
+                    <tr><td>Tập dữ liệu</td><td><a href="https://www.robots.ox.ac.uk/~vgg/data/pets/">Oxford-IIIT Pet</a> (Parkhi et al., CVPR 2012): 7.349 ảnh có mặt nạ trimap</td></tr>
+                    <tr><td>Hai phương pháp</td><td><strong>U-Net + ResNet-50</strong> (CNN) vs <strong>SegFormer-B2</strong> (Transformer), cùng pretrained ImageNet-1k, số tham số tương đương</td></tr>
+                    <tr><td>Metric</td><td><strong>mIoU 38 lớp</strong> (chính), mean Dice, pixel accuracy, IoU thú/nền; thời gian, bộ nhớ GPU, tốc độ suy luận</td></tr>
                 </table>
             </div>
+            <div class="callout" style="margin-top:16px">
+                <strong>Vì sao 38 lớp?</strong> Chỉ tách con vật khỏi nền thì quá dễ: con vật thường to và nằm giữa ảnh. Ở bài toán 38 lớp, mô hình phải vừa khoanh đúng hình dạng, vừa nhận đúng giống ở từng điểm ảnh, trong khi nhiều giống rất giống nhau. Lỗi có thể nằm ở biên hoặc ở nhãn giống, nên phân tích phong phú hơn.
+            </div>
         </section>
 
         <section>
-            <div class="section-head"><span class="num">02</span><h2>Các hướng có thể chọn</h2></div>
+            <div class="section-head"><span class="num">02</span><h2>Bài toán và tập dữ liệu (EDA)</h2></div>
             <div class="grid">
+                <div class="card"><h3>3.303 / 370 / 3.662</h3><p>Ảnh train / validation / test. Validation lấy 10 ảnh mỗi giống từ trainval chính thức (seed 42); test chính thức giữ nguyên.</p></div>
+                <div class="card"><h3>14 ảnh nhãn lỗi</h3><p>Trimap gán toàn bộ ảnh là nền dù có con vật. Nhóm loại khỏi mọi split để không dạy và chấm sai.</p></div>
+                <div class="card"><h3>27% · 60% · 11%</h3><p>Trung vị tỉ lệ điểm ảnh thú / nền / viền trong một ảnh. Vùng viền bị bỏ qua khi tính loss và metric.</p></div>
+                <div class="card"><h3>66% là nền</h3><p>Trên tập train, mỗi giống chỉ chiếm 0,4–1,5% điểm ảnh, nên dùng mIoU thay vì pixel accuracy làm metric chính.</p></div>
+            </div>
+            <div class="card" style="margin-top:16px">
+                <img src="assets/a2/samples_with_masks.png" alt="Ảnh mẫu 6 mèo và 6 chó cùng mặt nạ 38 lớp" style="width:100%;height:auto;border-radius:8px">
+                <p style="margin-top:8px">Ảnh mẫu và mặt nạ 38 lớp: đen là nền, mỗi màu là một giống, trắng là vùng viền bị bỏ qua.</p>
+            </div>
+            <div class="card" style="margin-top:16px">
+                <img src="assets/a2/breed_counts.png" alt="Số ảnh mỗi giống theo split" style="width:100%;height:auto;border-radius:8px">
+                <p style="margin-top:8px">Dữ liệu cân bằng theo giống: mỗi giống 80–90 ảnh train, 10 ảnh validation, 88–100 ảnh test.</p>
+            </div>
+            <div class="split" style="margin-top:16px">
                 <div class="card">
-                    <h3>Phân đoạn ảnh</h3>
-                    <p>Semantic / instance / panoptic với FCN, U-Net, DeepLab, PSPNet, SegFormer, Mask R-CNN.</p>
-                    <div class="pills"><span class="pill">mIoU</span><span class="pill">Dice</span></div>
+                    <img src="assets/a2/pixel_fractions.png" alt="Phân bố tỉ lệ điểm ảnh thú, nền và viền trong mỗi ảnh" style="width:100%;height:auto;border-radius:8px">
+                    <p style="margin-top:8px">Con vật thường chiếm phần nhỏ của ảnh; dải viền khá dày.</p>
                 </div>
                 <div class="card">
-                    <h3>Phát hiện đối tượng</h3>
-                    <p>YOLO so với Faster R-CNN hoặc DETR; đối chiếu CNN và Transformer.</p>
-                    <div class="pills"><span class="pill">mAP@0.5</span><span class="pill">mAP@0.5:0.95</span><span class="pill">FPS</span></div>
-                </div>
-                <div class="card">
-                    <h3>Định danh / ReID</h3>
-                    <p>Khuôn mặt, người, phương tiện với ArcFace, CosFace hoặc ReID; so sánh loss hay backbone.</p>
-                    <div class="pills"><span class="pill">Accuracy</span><span class="pill">Recall@k</span><span class="pill">mAP</span></div>
-                </div>
-                <div class="card">
-                    <h3>Tạo sinh ảnh</h3>
-                    <p>GAN, VAE, Diffusion, translation, inpainting — so sánh giữa các họ hoặc hai biến thể trong một họ.</p>
-                    <div class="pills"><span class="pill">FID</span><span class="pill">IS</span></div>
+                    <img src="assets/a2/class_pixel_share.png" alt="Tỉ lệ điểm ảnh mỗi lớp trên tập train, thang log" style="width:100%;height:auto;border-radius:8px">
+                    <p style="margin-top:8px">Nền áp đảo về số điểm ảnh; các giống tương đối đều nhau.</p>
                 </div>
             </div>
-            <p class="lead" style="margin-top:14px">Hướng khác trong CV + deep learning cần trao đổi và được giảng viên đồng ý trước A2.1. Dữ liệu dùng tập công khai đủ lớn như COCO, Pascal VOC, ADE20K, Cityscapes, CelebA, Market-1501…</p>
         </section>
 
         <section>
-            <div class="section-head"><span class="num">03</span><h2>Hai phần việc chính</h2></div>
+            <div class="section-head"><span class="num">03</span><h2>Dataset, DataLoader, augmentation</h2></div>
+            <div class="table-wrap card">
+                <table class="plain">
+                    <tr><th>Bước</th><th>Train</th><th>Validation / Test</th></tr>
+                    <tr><td>Nhãn</td><td colspan="2">Trimap → mặt nạ 38 lớp: nền 0, giống 1–37, viền 255 (bỏ qua)</td></tr>
+                    <tr><td>Hình học (ảnh + mặt nạ)</td><td>RandomResizedCrop 384 (scale 0,5–1) + lật ngang</td><td>Resize về 384×384</td></tr>
+                    <tr><td>Màu (chỉ ảnh)</td><td>ColorJitter 0,2</td><td>Không</td></tr>
+                    <tr><td>Chuẩn hoá</td><td colspan="2">Mean/std ImageNet</td></tr>
+                    <tr><td>DataLoader</td><td>Batch 16, shuffle</td><td>Batch 16</td></tr>
+                </table>
+            </div>
+            <div class="card" style="margin-top:16px">
+                <img src="assets/a2/augmentation_examples.png" alt="Một ảnh ở chế độ validation và bốn phiên bản augmentation kèm mặt nạ" style="width:100%;height:auto;border-radius:8px">
+                <p style="margin-top:8px">Augmentation áp dụng đồng thời cho ảnh và mặt nạ (mặt nạ nội suy nearest), nên nhãn luôn khớp ảnh.</p>
+            </div>
+        </section>
+
+        <section>
+            <div class="section-head"><span class="num">04</span><h2>Phân tích paper: SegFormer</h2></div>
             <div class="split">
                 <div class="card">
-                    <h3>Pipeline thực nghiệm</h3>
+                    <h3>Phương pháp</h3>
                     <ul class="checklist">
-                        <li>Chuẩn bị dữ liệu và augmentation</li>
-                        <li>Huấn luyện hoặc fine-tune, đánh giá bằng metric đúng bài toán</li>
-                        <li>So sánh tối thiểu hai phương pháp hoặc biến thể<small>Kiến trúc, backbone, có/không pretrained, hàm loss…</small></li>
+                        <li>Encoder Mix Transformer phân cấp: 4 bản đồ đặc trưng ở 1/4 đến 1/32 độ phân giải</li>
+                        <li>Không dùng positional encoding: tích chập 3×3 trong khối FFN cung cấp thông tin vị trí</li>
+                        <li>Self-attention rút gọn chuỗi key/value để rẻ ở độ phân giải cao</li>
+                        <li>Bộ giải mã toàn MLP, rất gọn</li>
                     </ul>
                 </div>
                 <div class="card">
-                    <h3>Phân tích paper</h3>
+                    <h3>Nhóm sẽ kiểm chứng ở A2.2</h3>
                     <ul class="checklist">
-                        <li>Phương pháp: ý tưởng, kiến trúc, loss, giả thiết</li>
-                        <li>Thí nghiệm của paper: dữ liệu, metric, kết luận</li>
-                        <li>Hạn chế: dữ liệu, chi phí tính toán, trường hợp thất bại</li>
-                        <li>Liên hệ: nhóm tái hiện được gì, khác ở đâu, rút ra gì cho pipeline</li>
+                        <li>Giải mã ở 1/4 độ phân giải có làm biên lông, tai, đuôi kém hơn U-Net?</li>
+                        <li>SegFormer-B2 có thắng một CNN mạnh cùng cỡ trên tập nhỏ hơn nhiều ADE20K/Cityscapes?</li>
+                        <li>Chi phí thực tế trên GPU T4</li>
+                    </ul>
+                </div>
+            </div>
+            <p class="lead" style="margin-top:14px">Bản đầy đủ (phương pháp, thí nghiệm của paper, hạn chế, đối chiếu với kết quả của nhóm) sẽ có ở mốc A2.2.</p>
+        </section>
+
+        <section>
+            <div class="section-head"><span class="num">05</span><h2>Pipeline, huấn luyện và so sánh</h2></div>
+            <div class="table-wrap card">
+                <table class="plain">
+                    <tr><th>Mô hình</th><th>Họ</th><th>Tham số (38 lớp)</th><th>Cách hoạt động</th></tr>
+                    <tr><td>U-Net + ResNet-50</td><td>CNN</td><td>32,5 triệu</td><td>Encoder ResNet-50 (timm), bộ giải mã nhóm tự viết: phóng to 5 bước, ghép skip connection, dự đoán ở độ phân giải gốc</td></tr>
+                    <tr><td>SegFormer-B2</td><td>Transformer</td><td>27,4 triệu</td><td>Encoder MiT-B2 + bộ giải mã toàn MLP (Hugging Face), dự đoán ở 1/4 rồi phóng bilinear</td></tr>
+                </table>
+            </div>
+            <div class="split" style="margin-top:16px">
+                <div class="card">
+                    <h3>Huấn luyện (giống nhau cho hai mô hình)</h3>
+                    <ul class="checklist">
+                        <li>Cross-entropy bỏ qua viền; AdamW, weight decay 0,01</li>
+                        <li>LR encoder 6e-5, bộ giải mã 6e-4; warmup 1 epoch + poly</li>
+                        <li>40 epoch, batch 16, ảnh 384×384, mixed precision trên Colab T4</li>
+                        <li>Chọn checkpoint theo mIoU validation, test đúng một lần</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>8 lần huấn luyện ở A2.2</h3>
+                    <ul class="checklist">
+                        <li>2 mô hình × 100% ảnh train: so sánh chính</li>
+                        <li>2 mô hình × 50% / 25% / 10% ảnh train: mô hình nào cần ít nhãn hơn</li>
+                        <li>Phân tích lỗi: IoU từng giống, nhầm giống cùng loài so với nhầm chó ↔ mèo</li>
+                        <li>Mở rộng: thử chéo trên ảnh chó mèo của Pascal VOC, demo</li>
                     </ul>
                 </div>
             </div>
             <div class="callout" style="margin-top:16px">
-                Paper ưu tiên từ CVPR, ICCV, ECCV, NeurIPS, ICLR hoặc các bài có ảnh hưởng lớn. Phần phân tích được <strong>viết lại bằng lời của nhóm</strong> và gắn với thí nghiệm thực tế, không chép abstract.
+                <strong>Đã kiểm tra ở A2.1:</strong> tải dữ liệu và kiểm tra MD5, EDA, DataLoader với augmentation; cả hai mô hình dựng được với trọng số pretrained, ra đúng kích thước 38×384×384, có gradient ở encoder và bộ giải mã, và loss giảm khi học thử trên một batch thật (chỉ là kiểm tra code, chưa phải kết quả).
             </div>
         </section>
 
         <section>
-            <div class="section-head"><span class="num">04</span><h2>Hai mốc nộp</h2></div>
-            <div class="split">
-                <div class="card">
-                    <div class="pills"><span class="pill">A2.1 · 02/11/2026 · ≈25%</span></div>
-                    <h3 style="margin-top:10px">Chủ đề, paper và dữ liệu</h3>
-                    <p>Khoá chủ đề, trích dẫn paper, mô tả tập dữ liệu và metric, lên kế hoạch pipeline.</p>
-                </div>
-                <div class="card">
-                    <div class="pills"><span class="pill">A2.2 · 16/11/2026 · ≈75%</span></div>
-                    <h3 style="margin-top:10px">Cài đặt và bài viết</h3>
-                    <p>Pipeline chạy được, so sánh từ hai biến thể trở lên, phân tích paper đầy đủ kèm số liệu và thảo luận.</p>
-                </div>
-            </div>
-            <p class="lead" style="margin-top:14px">Phần mở rộng có thể cộng điểm: Grad-CAM, demo, thử chéo tập dữ liệu, ablation bổ sung.</p>
-        </section>
-
-        <section>
-            <div class="section-head"><span class="num">05</span><h2>Bố cục trình bày</h2></div>
+            <div class="section-head"><span class="num">06</span><h2>Kết quả, thảo luận và hạn chế</h2></div>
             <div class="card">
-                <ul class="checklist">
-                    <li>Bài toán và khám phá dữ liệu (EDA)</li>
-                    <li>Dataset, DataLoader, augmentation</li>
-                    <li>Phân tích paper</li>
-                    <li>Pipeline, huấn luyện và so sánh phương pháp</li>
-                    <li>Kết quả, thảo luận và hạn chế</li>
-                </ul>
+                <p>Sẽ cập nhật ở mốc A2.2 (16/11/2026): bảng mIoU / Dice / chi phí, đường học, ảnh lỗi, đường cong theo lượng dữ liệu và thảo luận.</p>
             </div>
+        </section>
+
+        <section>
+            <div class="section-head"><span class="num">07</span><h2>Hai mốc nộp</h2></div>
+            <ul class="timeline">
+                <li class="done"><div class="date">A2.1 · 02/11/2026 <span class="status done">Đã hoàn thành</span></div><div class="what">Chốt chủ đề, paper, dữ liệu và metric; EDA, DataLoader, hai mô hình, kế hoạch thí nghiệm</div></li>
+                <li><div class="date">A2.2 · 16/11/2026 <span class="status">Đang thực hiện</span></div><div class="what">Huấn luyện 8 cấu hình, so sánh, phân tích paper đầy đủ, demo và video</div></li>
+            </ul>
             <div class="actions" style="margin-top:16px">
                 <a class="btn primary" href="https://github.com/dqpinfo/Deep_Learning_Computer_Vision_CO5085/tree/main/Assignment_2">Mã nguồn A2</a>
-                <a class="btn pending" href="#" aria-disabled="true">Báo cáo PDF (cập nhật sau)</a>
-                <a class="btn pending" href="#" aria-disabled="true">Video demo (cập nhật sau)</a>
-                <a class="btn pending" href="#" aria-disabled="true">Video trình bày (cập nhật sau)</a>
+                <a class="btn primary" href="https://github.com/dqpinfo/Deep_Learning_Computer_Vision_CO5085/blob/main/Reports/A2_1_report.pdf">Báo cáo A2.1 (PDF)</a>
+                <a class="btn pending" href="#" aria-disabled="true">Video demo (A2.2)</a>
+                <a class="btn pending" href="#" aria-disabled="true">Video trình bày (A2.2)</a>
                 <a class="btn" href="index.html">← Về trang chủ</a>
             </div>
         </section>

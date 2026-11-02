@@ -1,0 +1,51 @@
+{
+  "device": "mps",
+  "batch_shape": [
+    2,
+    3,
+    384,
+    384
+  ],
+  "models": [
+    {
+      "arch": "unet_r50",
+      "encoder_name": "resnet50.a1_in1k",
+      "total": 32521606,
+      "encoder": 23508032,
+      "decoder": 9013574,
+      "output_shape": [
+        2,
+        38,
+        384,
+        384
+      ],
+      "grad_ok": true,
+      "loss_first": 3.810645818710327,
+      "loss_last": 3.0798025131225586,
+      "overfit_steps": 10,
+      "sec_per_step": 1.362321837496711,
+      "pixel_acc_after": 0.33814266966556594,
+      "pet_iou_after": 0.6661617018289866
+    },
+    {
+      "arch": "segformer_b2",
+      "encoder_name": "nvidia/mit-b2",
+      "total": 27375846,
+      "encoder": 24196288,
+      "decoder": 3179558,
+      "output_shape": [
+        2,
+        38,
+        384,
+        384
+      ],
+      "grad_ok": true,
+      "loss_first": 3.6856491565704346,
+      "loss_last": 0.04838472977280617,
+      "overfit_steps": 10,
+      "sec_per_step": 12.514580383303109,
+      "pixel_acc_after": 0.9924279083451728,
+      "pet_iou_after": 0.9832221097596542
+    }
+  ]
+}
