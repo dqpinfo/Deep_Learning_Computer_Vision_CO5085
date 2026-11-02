@@ -52,7 +52,7 @@
 \newcommand{\TenMonHoc}{Học sâu và ứng dụng trong thị giác máy tính}
 \newcommand{\MaMonHoc}{CO5085}
 \newcommand{\TenBaoCao}{Bài tập lớn A2 - Mốc A2.1: Chủ đề, paper và dữ liệu}
-\newcommand{\TenDeTai}{Phân đoạn ngữ nghĩa 38 lớp trên Oxford-IIIT Pet:\\U-Net (CNN) hay SegFormer (Transformer)?}
+\newcommand{\TenDeTai}{Phân đoạn ngữ nghĩa 38 lớp trên Oxford-IIIT Pet:\\So sánh U-Net (CNN) và SegFormer (Transformer)}
 \newcommand{\GiangVien}{Thầy Lê Thành Sách\\Thầy Nguyễn Quốc Minh}
 \newcommand{\ThanhVien}{%
   Đàm Quang Phục - 2570483\\
@@ -161,14 +161,6 @@ mô hình phải trả lời đồng thời ``ở đâu'' và ``là gì''. Nhóm
         mã giống, điểm nền nhận 0, vùng \emph{viền} (dải mờ quanh biên con vật mà người gán nhãn không chắc chắn) nhận
         giá trị 255 và \st{bị bỏ qua} khi tính loss và metric.
 \end{itemize}
-
-\subsection{Vì sao 38 lớp mà không chỉ tách thú khỏi nền}
-Đề bài yêu cầu tránh tập ``quá dễ''. Nếu chỉ tách thú khỏi nền (2--3 lớp), con vật thường to và nằm giữa ảnh nên các mô
-hình hiện đại đều đạt kết quả rất cao, khó thấy khác biệt giữa hai phương pháp. Bài toán 38 lớp khó hơn hẳn: mô hình phải
-khoanh đúng hình dạng \emph{và} nhận ra đúng giống ở từng điểm ảnh, trong khi nhiều giống rất giống nhau (ví dụ
-American Pit Bull Terrier và Staffordshire Bull Terrier). Lỗi có thể nằm ở biên (sai hình dạng) hoặc ở nhãn (đúng hình
-dạng, sai giống), nên phân tích lỗi phong phú hơn. Đây cũng là cách nối tiếp A1: ở A1 nhóm thấy mô hình hay nhầm trong
-cùng một siêu lớp; ở A2 có thể hỏi tương tự là mô hình nhầm sang giống cùng loài hay nhầm chó thành mèo.
 
 \subsection{Câu hỏi nghiên cứu}
 \begin{enumerate}

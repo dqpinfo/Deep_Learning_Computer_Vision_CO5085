@@ -322,7 +322,7 @@ table.plain th { font-size: 13px; color: var(--ink-soft); font-weight: 600; text
     <div class="hero">
         <div class="wrap">
             <span class="eyebrow">Bài tập lớn · A2</span>
-            <h1>Phân đoạn ảnh thú cưng 38 lớp: U-Net hay SegFormer?</h1>
+            <h1>Phân đoạn ảnh thú cưng 38 lớp: so sánh U-Net và SegFormer</h1>
             <p>Dạy máy tô từng điểm ảnh trong ảnh chó mèo: đâu là nền, đâu là con vật và con vật thuộc giống nào trong 37 giống. Nhóm so sánh một mô hình CNN với một mô hình Transformer và phân tích paper SegFormer (NeurIPS 2021).</p>
             <div class="meta">
                 <span class="chip">A2.1: 02/11/2026 · đã xong</span>
@@ -343,9 +343,6 @@ table.plain th { font-size: 13px; color: var(--ink-soft); font-weight: 600; text
                     <tr><td>Hai phương pháp</td><td><strong>U-Net + ResNet-50</strong> (CNN) vs <strong>SegFormer-B2</strong> (Transformer), cùng pretrained ImageNet-1k, số tham số tương đương</td></tr>
                     <tr><td>Metric</td><td><strong>mIoU 38 lớp</strong> (chính), mean Dice, pixel accuracy, IoU thú/nền; thời gian, bộ nhớ GPU, tốc độ suy luận</td></tr>
                 </table>
-            </div>
-            <div class="callout" style="margin-top:16px">
-                <strong>Vì sao 38 lớp?</strong> Chỉ tách con vật khỏi nền thì quá dễ: con vật thường to và nằm giữa ảnh. Ở bài toán 38 lớp, mô hình phải vừa khoanh đúng hình dạng, vừa nhận đúng giống ở từng điểm ảnh, trong khi nhiều giống rất giống nhau. Lỗi có thể nằm ở biên hoặc ở nhãn giống, nên phân tích phong phú hơn.
             </div>
         </section>
 
