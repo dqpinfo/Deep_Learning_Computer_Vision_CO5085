@@ -11,9 +11,39 @@ Hai "bộ não" được so sánh, đều đã được học trước trên Ima
 | **U-Net + ResNet-50** | CNN | Thu nhỏ ảnh dần để hiểu nội dung, rồi phóng to lại từng bước, ghép với chi tiết của tầng trước để vẽ biên chính xác |
 | **SegFormer-B2** | Transformer | Cho các vùng ảnh "nói chuyện" với nhau ở nhiều tỉ lệ (self-attention), rồi một bộ giải mã toàn MLP gộp lại thành bản đồ nhãn |
 
-Paper phân tích: **SegFormer** — E. Xie, W. Wang, Z. Yu, A. Anandkumar, J. M. Alvarez, P. Luo. *SegFormer: Simple and Efficient Design for Semantic Segmentation with Transformers.* NeurIPS 2021. [arXiv:2105.15203](https://arxiv.org/abs/2105.15203).
-
 Tập dữ liệu: **Oxford-IIIT Pet** (Parkhi et al., CVPR 2012), 7.349 ảnh có mặt nạ trimap. [Trang chính thức](https://www.robots.ox.ac.uk/~vgg/data/pets/).
+
+## Paper nhóm chọn để phân tích
+
+> E. Xie, W. Wang, Z. Yu, A. Anandkumar, J. M. Alvarez, P. Luo. **SegFormer: Simple and Efficient Design for Semantic Segmentation with Transformers.** *Advances in Neural Information Processing Systems (NeurIPS)*, 2021.
+
+| Tài nguyên | Link |
+|---|---|
+| Trang arXiv | [arXiv:2105.15203](https://arxiv.org/abs/2105.15203) |
+| File PDF | [arxiv.org/pdf/2105.15203](https://arxiv.org/pdf/2105.15203) (18 trang) |
+| Mã nguồn chính thức | [github.com/NVlabs/SegFormer](https://github.com/NVlabs/SegFormer) |
+| Trọng số dùng trong bài | [`nvidia/mit-b2`](https://huggingface.co/nvidia/mit-b2) trên Hugging Face (encoder MiT-B2 pretrained ImageNet-1k) |
+
+**Vì sao chọn bài này**
+
+- **Liên quan trực tiếp đến phần cài đặt:** SegFormer-B2 chính là một trong hai mô hình nhóm huấn luyện, nên mọi thí nghiệm của nhóm đều đối chiếu được với paper.
+- **Hội nghị hàng đầu, được dùng rộng rãi:** NeurIPS 2021; SegFormer là mô hình Transformer chuẩn cho phân đoạn ảnh, có cài đặt chính thức trong thư viện Hugging Face Transformers.
+- **Vừa sức tính toán:** họ mô hình có nhiều cỡ (B0–B5); bản B2 (27,5 triệu tham số theo paper) huấn luyện được trên GPU T4 của Colab.
+
+**Nhóm dựa vào paper như thế nào**
+
+| Từ paper | Trong bài của nhóm |
+|---|---|
+| Kiến trúc: encoder Mix Transformer phân cấp + bộ giải mã toàn MLP | Biến thể Transformer `segformer_b2` (`models.py`) |
+| Cách huấn luyện: AdamW, lr ban đầu 6e-5, lịch "poly" hệ số 1.0, batch 16 (mục 4 của paper); bộ giải mã học nhanh gấp 10 lần encoder (file cấu hình trong mã nguồn chính thức) | Dùng chung cho cả hai mô hình (`config.TRAIN_HPARAMS`) để so sánh công bằng |
+| Metric chính: mIoU | Metric chính của nhóm: mIoU 38 lớp (`metrics.py`) |
+| Tuyên bố: bộ giải mã MLP gọn mà vẫn đủ tốt; mạnh hơn CNN cùng cỡ | Kiểm chứng ở A2.2 bằng cách so với U-Net + ResNet-50 trên tập nhỏ hơn nhiều so với tập của paper, đặc biệt ở chất lượng biên con vật |
+
+**Bản PDF trên máy:** paper được phát hành trên arXiv theo giấy phép chỉ cho arXiv quyền phân phối, nên nhóm không đưa file PDF lên GitHub. Để đọc offline, tải về thư mục `paper/` (đã nằm trong `.gitignore`):
+
+```bash
+mkdir -p paper && curl -L -o paper/SegFormer_NeurIPS2021_arXiv2105.15203.pdf https://arxiv.org/pdf/2105.15203
+```
 
 ## Mốc A2.1 (02/11/2026) — Chủ đề, paper, dữ liệu, kế hoạch
 
@@ -52,3 +82,4 @@ python smoke_test.py   # kiểm tra hai mô hình + DataLoader + metric, ghi out
 | `smoke_test.py` | Kiểm tra pipeline mốc A2.1 |
 | `splits/pet_split.json` | Danh sách ảnh của từng split (cố định) |
 | `report/` | Mã nguồn LaTeX báo cáo |
+| `paper/` | Bản PDF paper SegFormer để đọc offline (tải bằng lệnh ở trên, không commit) |
