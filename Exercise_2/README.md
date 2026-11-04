@@ -11,8 +11,8 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 **3. Cài đặt các thư viện còn lại**  
 pip install -r requirements.txt --ignore-installed torch torchvision
 
-**4. Train các mô hình Softmax, MLP và CNN**  
+**4. Train các mô hình PatchTokenizer, RowTokenizer, MyMSA, PyTorchMSA, ImageTransformerClassifier**  
 python train.py
 
-**5. Đánh giá các mô hình Softmax, MLP và CNN**  
+**5. Đánh giá các mô hình PatchTokenizer, RowTokenizer, MyMSA, PyTorchMSA, ImageTransformerClassifier**  
 python evaluate.py
