@@ -1,148 +1,221 @@
 import os
+import json
 import torch
 import torch.nn as nn
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 import seaborn as sns
+from pathlib import Path
 from sklearn.metrics import confusion_matrix, classification_report
 from dataset import get_data_loaders
 from models import ImageRNNClassifier
 
-SAVE_DIR = "output"
-os.makedirs(SAVE_DIR, exist_ok=True)
-
-DIGIT_CLASSES = [str(i) for i in range(10)]
-
+# Đếm tổng số tham số cần huấn luyện của mô hình (Model Capacity)
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
-def plot_sequence_representation(image_tensor, label_name="Sample"):
-    img = image_tensor.squeeze().numpy()
-    fig, axes = plt.subplots(1, 3, figsize=(12, 4))
+# Tính độ chính xác của mô hình trên tập test
+def evaluate_model(model, test_loader):
+    model.eval()                                            # Chuyển mô hình sang chế độ đánh giá (evaluation mode) để tắt dropout, batch normalization, v.v.
 
-    axes[0].imshow(img, cmap="gray")
-    axes[0].set_title(f"MNIST Digit ({label_name})")
-    axes[0].axis("off")
-
-    axes[1].imshow(img, cmap="magma")
-    axes[1].axhline(y=14, color="cyan", linestyle="--", linewidth=2)
-    axes[1].set_title("Row-wise Sequence\n(Time-step = Row)")
-    axes[1].set_ylabel("Time Steps (0-27)")
-    axes[1].set_xlabel("Features / Pixels (28)")
-
-    axes[2].imshow(img.T, cmap="magma")
-    axes[2].axvline(x=14, color="cyan", linestyle="--", linewidth=2)
-    axes[2].set_title("Column-wise Sequence\n(Time-step = Column)")
-    axes[2].set_xlabel("Features / Pixels (28)")
-    axes[2].set_ylabel("Time Steps (0-27)")
-
-    plt.tight_layout()
+    correct = 0
+    total = 0
     
-    # Show ảnh ra cửa sổ popup trước
-    plt.show()
-    
-    # Sau đó lưu file vào thư mục output
-    output_path = os.path.join(SAVE_DIR, "e3_mnist_sequence_representation.png")
-    plt.savefig(output_path, dpi=300)
-    plt.close()
-    print(f"[+] Đã lưu biểu đồ mô tả chuỗi tại: {output_path}")
-
-def plot_confusion_matrix(y_true, y_pred, model_name="LSTM"):
-    cm = confusion_matrix(y_true, y_pred)
-    
-    plt.figure(figsize=(9, 7))
-    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=DIGIT_CLASSES, yticklabels=DIGIT_CLASSES)
-    plt.title(f"MNIST Confusion Matrix - {model_name}")
-    plt.xlabel("Predicted Digit")
-    plt.ylabel("True Digit")
-    plt.tight_layout()
-    
-    # Show cửa sổ popup chứa ma trận nhầm lẫn
-    plt.show()
-    
-    # Lưu file vào thư mục output
-    output_path = os.path.join(SAVE_DIR, f"e3_mnist_confusion_matrix_{model_name.lower()}.png")
-    plt.savefig(output_path, dpi=300)
-    plt.close()
-    print(f"[+] Đã lưu Confusion Matrix của {model_name} vào thư mục '{SAVE_DIR}' thành công!")
-
-def plot_baseline_comparison(results_dict):
-    models = list(results_dict.keys())
-    accuracies = list(results_dict.values())
-
-    plt.figure(figsize=(9, 5))
-    bars = plt.bar(models, accuracies, color=["#7f7f7f", "#2ca02c", "#1f77b4", "#ff7f0e"])
-    plt.title("MNIST Performance Comparison (Baseline E1 vs RNN E3)")
-    plt.ylabel("Test Accuracy (%)")
-    plt.ylim(80, 100)
-
-    for bar in bars:
-        yval = bar.get_height()
-        plt.text(bar.get_x() + bar.get_width()/2.0, yval + 0.3, f"{yval:.2f}%", ha="center", va="bottom", fontweight="bold")
-
-    plt.grid(axis="y", linestyle="--", alpha=0.5)
-    plt.tight_layout()
-    
-    # Show cửa sổ popup biểu đồ so sánh
-    plt.show()
-    
-    # Lưu file vào thư mục output
-    output_path = os.path.join(SAVE_DIR, "e3_mnist_baseline_comparison.png")
-    plt.savefig(output_path, dpi=300)
-    plt.close()
-    print(f"[+] Đã lưu biểu đồ so sánh Baseline vào thư mục '{SAVE_DIR}' thành công!")
-
-def evaluate_models():
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    train_loader, test_loader = get_data_loaders()
-    
-    sample_img, sample_label = next(iter(train_loader))
-    plot_sequence_representation(sample_img[0], label_name=DIGIT_CLASSES[sample_label[0]])
-    
-    test_acc_results = {}
-    
-    for rnn_type in ['LSTM', 'GRU']:
-        model = ImageRNNClassifier(rnn_type=rnn_type, input_size=28, hidden_size=128, num_classes=10).to(device)
-        
-        weight_path = os.path.join("output", f"{rnn_type.lower()}_model.pth")
-        if os.path.exists(weight_path):
-            model.load_state_dict(torch.load(weight_path, map_location=device))
-        else:
-            print(f"[!] Cảnh báo: Không tìm thấy file {weight_path}. Đang đánh giá với mô hình chưa train.")
+    with torch.no_grad():                                   # Tắt tính toán gradient để tiết kiệm bộ nhớ
+        for images, labels in test_loader:
+            outputs = model(images)
+            _, predicted = torch.max(outputs.data, 1)       # Lấy nhãn dự đoán bằng cách chọn lớp có điểm số cao nhất (argmax) từ logits
+            total += labels.size(0)                         # Cập nhật tổng số mẫu đã xử lý trong tập test
+            correct += (predicted == labels).sum().item()   # Tính số lượng dự đoán đúng bằng cách so sánh nhãn dự đoán với nhãn thực tế
             
-        model.eval()
-        correct, total = 0, 0
-        all_preds, all_labels = [], []
-        
-        with torch.no_grad():
-            for images, labels in test_loader:
-                images, labels = images.to(device), labels.to(device)
-                outputs = model(images)
-                _, predicted = outputs.max(1)
-                total += labels.size(0)
-                correct += predicted.eq(labels).sum().item()
-                
-                all_preds.extend(predicted.cpu().numpy())
-                all_labels.extend(labels.cpu().numpy())
-                
-        acc = (correct / total) * 100
-        params = count_parameters(model)
-        test_acc_results[f"{rnn_type} (E3)"] = acc
-        
-        print(f"\n========================================")
-        print(f" KẾT QUẢ ĐÁNH GIÁ MÔ HÌNH: {rnn_type}")
-        print(f"========================================")
-        print(f" - Tổng số lượng tham số: {params:,}")
-        print(f" - Độ chính xác Test Accuracy: {acc:.2f}%")
-        print("\nBáo cáo phân loại chi tiết (Classification Report):")
-        print(classification_report(all_labels, all_preds, target_names=DIGIT_CLASSES))
-        
-        plot_confusion_matrix(all_labels, all_preds, model_name=rnn_type)
-        
-    test_acc_results['MLP (E1)'] = 97.80
-    test_acc_results['CNN (E1)'] = 99.10
+    accuracy = correct / total                              # Tính độ chính xác bằng cách chia số lượng dự đoán đúng cho tổng số mẫu
+    return accuracy
+
+# Hàm vẽ biểu đồ Loss và Accuracy so sánh giữa các mô hình
+def plot_learning_curves(output_dir = Path("./output")):
+    history_file = output_dir / "training_history.json"
     
-    plot_baseline_comparison(test_acc_results)
+    if not history_file.exists():
+        print(f"File lịch sử huấn luyện không tồn tại: {history_file}")
+        return
+    
+    # Đọc dữ liệu lịch sử huấn luyện từ file JSON
+    with open(history_file, "r") as f:
+        history_dict = json.load(f)
+
+    _, axes = plt.subplots(1, 2, figsize = (14, 5))
+    
+    # Biểu đồ Loss
+    for name, history in history_dict.items():
+        axes[0].plot(history['train_loss'], label = name, linewidth = 2)
+    axes[0].set_title('So sánh Training Loss qua các Epochs', fontsize = 12, fontweight = 'bold')
+    axes[0].set_xlabel('Epoch')
+    axes[0].set_ylabel('Loss')
+    axes[0].legend()
+    axes[0].grid(True, linestyle = '--', alpha = 0.7)
+    
+    # Biểu đồ Accuracy
+    for name, history in history_dict.items():
+        axes[1].plot(history['train_acc'], label = name, linewidth = 2)
+    axes[1].set_title('So sánh Training Accuracy qua các Epochs', fontsize = 12, fontweight = 'bold')
+    axes[1].set_xlabel('Epoch')
+    axes[1].set_ylabel('Accuracy')
+    axes[1].legend()
+    axes[1].grid(True, linestyle = '--', alpha = 0.7)
+    
+    plt.tight_layout()
+    plt.savefig(output_dir / 'comparison_curves.png', dpi = 300)
+    print("-> Đã lưu biểu đồ so sánh Loss và Accuracy: comparison_curves.png")
+    plt.show()
+
+# Vẽ bảng tổng hợp số liệu (tham số, accuracy) và lưu thành file ảnh
+def plot_summary_table(table_data, output_dir = Path("./output")):
+    
+    fig, ax = plt.subplots(figsize = (7, 3))
+    ax.axis('off')
+    
+    table = ax.table(cellText = table_data, loc = 'center', cellLoc = 'center')
+    table.auto_set_font_size(False)
+    table.set_fontsize(10)
+    table.scale(1.2, 1.8)
+    
+    # Định dạng màu cho hàng tiêu đề
+    for (row, col), cell in table.get_celld().items():
+        if row == 0:
+            cell.set_facecolor('#4CAF50')
+            cell.set_text_props(color = 'white', weight = 'bold')
+            
+    ax.set_title('Bảng tổng hợp chỉ số so sánh Bài tập E2', y = 0.85, weight = 'bold')
+    
+    plt.tight_layout()
+    plt.savefig(output_dir / f'summary_table.png', dpi = 300)
+    plt.show()
+    print(f"Đã lưu bảng tổng hợp tại: '{output_dir / f'summary_table.png'}'")
+
+# Hàm vẽ Confusion Matrix và tìm các mẫu lỗi (Error Analysis)
+def analyze_errors_and_confusion_matrix(model, test_loader, model_name = "Model", output_dir = Path("./output")):
+
+    model.eval()
+
+    all_preds = []
+    all_labels = []
+    incorrect_samples = []
+    
+    with torch.no_grad():
+        for images, labels in test_loader:
+            outputs = model(images)
+            _, predicted = torch.max(outputs, 1)
+            
+            # Thu thập toàn bộ dự đoán và nhãn thực tế
+            for img, true_lbl, pred_lbl in zip(images, labels, predicted):
+                all_preds.append(pred_lbl.item())
+                all_labels.append(true_lbl.item())
+                
+                # Lưu lại một số mẫu dự đoán sai để phân tích lỗi
+                if true_lbl.item() != pred_lbl.item() and len(incorrect_samples) < 5:
+                    incorrect_samples.append((img, true_lbl.item(), pred_lbl.item()))
+
+    # Tính Confusion Matrix
+    cm = confusion_matrix(all_labels, all_preds)
+    
+    # Vẽ biểu đồ Heatmap cho Confusion Matrix
+    plt.figure(figsize = (8, 6))
+    sns.heatmap(cm, annot = True, fmt = 'd', cmap = 'Blues', cbar = False)
+    plt.title(f'Confusion Matrix - {model_name}', fontsize = 14, fontweight='bold')
+    plt.xlabel('Dự đoán (Predicted)', fontsize = 11)
+    plt.ylabel('Thực tế (Actual)', fontsize = 11)
+    plt.tight_layout()
+    plt.savefig(output_dir / f'confusion_matrix_{model_name.lower()}.png', dpi = 300)
+    print(f"-> Đã lưu Confusion Matrix: confusion_matrix_{model_name.lower()}.png")
+    plt.show()
+    
+    # Vẽ trực quan hóa một số mẫu dự đoán sai
+    if incorrect_samples:
+        fig, axes = plt.subplots(1, len(incorrect_samples), figsize=(12, 3))
+        if len(incorrect_samples) == 1:
+            axes = [axes]
+        for i, (img, true_l, pred_l) in enumerate(incorrect_samples):
+            # Chuyển tensor ảnh về numpy để vẽ (bỏ chiều kênh 1)
+            img_np = img.squeeze().numpy()
+            axes[i].imshow(img_np, cmap = 'gray')
+            axes[i].set_title(f"Thật: {true_l}\nĐoán: {pred_l}", color = 'red', fontsize = 10)
+            axes[i].axis('off')
+        plt.suptitle(f'Các mẫu dự đoán sai tiêu biểu - {model_name}', fontsize = 12, fontweight = 'bold')
+        plt.tight_layout()
+        plt.savefig(output_dir / f'error_samples_{model_name.lower()}.png', dpi = 300)
+        print(f"-> Đã lưu các mẫu lỗi: error_samples_{model_name.lower()}.png")
+        plt.show()
+
+def main():
+    output_dir = Path("./output")
+
+    if output_dir.is_dir() == False:
+        print(f"Folder not found: {output_dir}")
+        return
+    else:
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        
+        # Tải dữ liệu test
+        train_loader, test_loader = get_data_loaders(batch_size = 64)
+
+        # Khởi tạo và nạp trọng số đã huấn luyện cho các mô hình
+        lstm_model = ImageRNNClassifier(rnn_type = 'LSTM', input_size = 28, hidden_size = 128, num_classes = 10).to(device)
+        lstm_model.load_state_dict(torch.load(output_dir / "lstm_weights.pth"))
+
+        gru_model = ImageRNNClassifier(rnn_type = 'GRU', input_size = 28, hidden_size = 128, num_classes = 10).to(device)
+        gru_model.load_state_dict(torch.load(output_dir / "gru_weights.pth"))
+
+        # So sánh số lượng tham số
+        params_mlp = 109386
+        params_cnn = 105962
+        params_lstm = count_parameters(lstm_model)
+        params_gru = count_parameters(gru_model)
+
+        print("\n===================================================================")
+        print("Bảng so sánh số lượng tham số (Model Capacity)")
+        print("===================================================================")
+        print(f"MLP Classifier  (E1)    : {params_mlp:,} tham số")
+        print(f"CNN Classifier  (E1)    : {params_cnn:,} tham số")
+        print(f"LSTM Classifier (E3)    : {params_lstm:,} tham số")
+        print(f"GRU Classifier  (E3)    : {params_gru:,} tham số")
+        print("===================================================================")
+
+        # Đánh giá độ chính xác trên tập Test
+        acc_mlp = 0.9697
+        acc_cnn = 0.9891
+        acc_lstm = evaluate_model(lstm_model, test_loader)
+        acc_gru = evaluate_model(gru_model, test_loader)
+
+        print("\n===================================================================")
+        print("Bảng đánh giá độ chính xác (Accuracy) trên tập Test")
+        print("===================================================================")
+        print(f"MLP Test Accuracy  (E1)  : {acc_mlp * 100:.2f}%")
+        print(f"CNN Test Accuracy  (E1)  : {acc_cnn * 100:.2f}%")
+        print(f"LSTM Test Accuracy (E3)  : {acc_lstm * 100:.2f}%")
+        print(f"GRU Test Accuracy  (E3)  : {acc_gru * 100:.2f}%")
+        print("===================================================================")
+
+        # Vẽ và lưu bảng tổng hợp số liệu
+        table_data = [
+            ["Mô hình", "Số lượng tham số", "Độ chính xác (Accuracy)"],
+            ["MLP  (E1)", f"{params_mlp:,}", f"{acc_mlp * 100:.2f}%"],
+            ["CNN  (E1)", f"{params_cnn:,}", f"{acc_cnn * 100:.2f}%"],
+            ["LSTM (E3)", f"{params_lstm:,}", f"{acc_lstm * 100:.2f}%"],
+            ["GRU  (E3)", f"{params_gru:,}", f"{acc_gru * 100:.2f}%"]
+        ]
+        
+        plot_summary_table(table_data)
+
+        # Tạo biểu đồ so sánh đường học (Learning Curves) giữa các mô hình
+        print("\nĐang vẽ biểu đồ so sánh Loss và Accuracy giữa các mô hình")
+        plot_learning_curves()
+        
+        # Phân tích lỗi và Confusion Matrix cho các mô hình LSTM và GRU
+        print("\nTạo Confusion Matrix và biểu đồ phân tích mẫu lỗi cho LSTM")
+        analyze_errors_and_confusion_matrix(lstm_model, test_loader, model_name = "LSTM")
+
+        print("\nTạo Confusion Matrix và biểu đồ phân tích mẫu lỗi cho GRU")
+        analyze_errors_and_confusion_matrix(gru_model, test_loader, model_name = "GRU")
 
 if __name__ == '__main__':
-    evaluate_models()
+    main()

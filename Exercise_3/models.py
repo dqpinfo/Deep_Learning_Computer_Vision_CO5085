@@ -2,7 +2,8 @@ import torch
 import torch.nn as nn
 
 class ImageRNNClassifier(nn.Module):
-    def __init__(self, rnn_type='LSTM', input_size=28, hidden_size=128, num_layers=1, num_classes=10, sequence_mode='row'):
+
+    def __init__(self, rnn_type = 'LSTM', input_size = 28, hidden_size = 128, num_layers = 1, num_classes = 10, sequence_mode = 'row'):
         super(ImageRNNClassifier, self).__init__()
         self.rnn_type = rnn_type.upper()
         self.hidden_size = hidden_size
@@ -10,13 +11,13 @@ class ImageRNNClassifier(nn.Module):
         self.sequence_mode = sequence_mode # 'row' (theo hàng) hoặc 'col' (theo cột)
         
         if self.rnn_type == 'LSTM':
-            self.rnn = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
+            self.rnn = nn.LSTM(input_size, hidden_size, num_layers, batch_first = True) # Tensor đầu vào có dạng (Batch, Seq_Len, Input_Dim)
         elif self.rnn_type == 'GRU':
-            self.rnn = nn.GRU(input_size, hidden_size, num_layers, batch_first=True)
+            self.rnn = nn.GRU(input_size, hidden_size, num_layers, batch_first = True)
         else:
             raise ValueError("rnn_type phải là 'LSTM' hoặc 'GRU'")
             
-        self.fc = nn.Linear(hidden_size, num_classes)
+        self.fc = nn.Linear(hidden_size, num_classes)                                   # Lớp fully connected: 128 đầu vào, 10 đầu ra
 
     def forward(self, x):
         # x ban đầu có kích thước: (Batch, Channels, Height, Width) -> (Batch, 1, 28, 28)
@@ -24,21 +25,23 @@ class ImageRNNClassifier(nn.Module):
         
         if self.sequence_mode == 'col':
             # Quét theo cột: Hoán đổi chiều Height và Width (dim 2 và dim 3)
-            # Sau khi permute: (Batch, 1, Width, Height), lúc này mỗi cột trở thành 1 time-step
+            # Sau khi permute: (Batch, 1, Height, Width) => (Batch, 1, Width, Height), lúc này mỗi cột trở thành 1 time-step
             x = x.permute(0, 1, 3, 2)
         
         # Loại bỏ kênh màu (channel = 1) để đưa về tensor 3D: (Batch, Seq_Len, Input_Dim)
-        x = x.squeeze(1) 
+        x = x.squeeze(1)
         
         # Khởi tạo hidden state
         if self.rnn_type == 'LSTM':
-            h0 = torch.zeros(self.num_layers, batch_size, self.hidden_size).to(x.device)
-            c0 = torch.zeros(self.num_layers, batch_size, self.hidden_size).to(x.device)
-            out, (hn, cn) = self.rnn(x, (h0, c0))
+            h0 = torch.zeros(self.num_layers, batch_size, self.hidden_size).to(x.device)    # Khởi tạo trạng thái ẩn (hidden state) h0 với kích thước (num_layers, batch_size, hidden_size)
+            c0 = torch.zeros(self.num_layers, batch_size, self.hidden_size).to(x.device)    # Khởi tạo trạng thái tế bào (cell state) c0 với kích thước (num_layers, batch_size, hidden_size)
+            out, (hn, cn) = self.rnn(x, (h0, c0))                                           # out: đầu ra của RNN với kích thước (Batch, Seq_Len, Hidden_Size)
+        elif self.rnn_type == 'GRU':
+            h0 = torch.zeros(self.num_layers, batch_size, self.hidden_size).to(x.device)    # Khởi tạo trạng thái ẩn (hidden state) h0 với kích thước (num_layers, batch_size, hidden_size)
+            out, hn = self.rnn(x, h0)                                                       # out: đầu ra của RNN với kích thước (Batch, Seq_Len, Hidden_Size)
         else:
-            h0 = torch.zeros(self.num_layers, batch_size, self.hidden_size).to(x.device)
-            out, hn = self.rnn(x, h0)
-            
+            raise ValueError("rnn_type phải là 'LSTM' hoặc 'GRU'")
+        
         # Lấy trạng thái ẩn ở bước thời gian cuối cùng để phân loại
         out = self.fc(hn[-1])
         return out
