@@ -16,3 +16,7 @@ python train.py
 
 **5. Đánh giá các mô hình ABC**  
 python evaluate.py
+
+**6. Tính số liệu cho báo cáo E1–E3**  
+python report_metrics.py  
+(dùng trọng số đã lưu trong `output/` và trọng số MLP/CNN trong `../Exercise_1/output/`; ghi `output/report_metrics.json` và `output/rows_seen.png`)

@@ -24,7 +24,7 @@
 \usepackage{titlesec}
 \usepackage{float}
 \usepackage{hyperref}
-\hypersetup{hidelinks, pdftitle={E1-E3 - Phan loai anh MNIST: Softmax, MLP, CNN, MSA}}
+\hypersetup{hidelinks, pdftitle={E1-E3 - Phan loai anh MNIST: Softmax, MLP, CNN, MSA, LSTM, GRU}}
 \usepackage{parskip}
 
 \graphicspath{{./}{figures/}}
@@ -52,13 +52,13 @@
 \newcommand{\TenMonHoc}{Học sâu và ứng dụng trong thị giác máy tính}
 \newcommand{\MaMonHoc}{CO5085}
 \newcommand{\TenBaoCao}{Bài tập E1 -- E3}
-\newcommand{\TenDeTai}{Phân loại chữ số viết tay MNIST:\\Softmax, MLP, CNN và Multi-Head Self-Attention}
+\newcommand{\TenDeTai}{Phân loại chữ số viết tay MNIST:\\Softmax, MLP, CNN, Multi-Head Self-Attention, LSTM và GRU}
 \newcommand{\GiangVien}{Thầy Lê Thành Sách\\Thầy Nguyễn Quốc Minh}
 \newcommand{\ThanhVien}{%
   Đàm Quang Phục - 2570483\\
   Hồ Bảo An - 2570164
 }
-\newcommand{\DiaDiemNgay}{Thành Phố Hồ Chí Minh, 10/2026}
+\newcommand{\DiaDiemNgay}{Thành Phố Hồ Chí Minh, 11/2026}
 \newcommand{\FooterText}{\TenMonHoc\ -- \MaMonHoc}
 
 % ---------- Header / Footer ----------
@@ -138,12 +138,13 @@ Thành viên nhóm:
 \newpage
 
 \noindent\fcolorbox{black!35}{black!3}{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule}{
-\textbf{Phiên bản W9 (hạn 02/11/2026): E1 và E2.} Cả hai bài dùng chung tập \st{MNIST}. \st{E1} so sánh ba bộ phân loại
+\textbf{Phiên bản W10 (hạn 09/11/2026): đủ E1, E2 và E3.} Cả ba bài dùng chung tập \st{MNIST}. \st{E1} so sánh ba bộ phân loại
 Softmax, MLP và CNN: CNN đạt \st{98,91\%} trên 10.000 ảnh test với số tham số ít hơn MLP (105.962 so với 109.386).
 \st{E2} tự cài đặt Multi-Head Self-Attention (MSA), đối chiếu với \code{nn.MultiheadAttention} và thử hai cách tạo token
 (theo patch và theo hàng). MSA tự viết cho kết quả \st{trùng khớp tuyệt đối} với bản PyTorch khi dùng chung trọng số;
-cách tạo token theo hàng tốt hơn theo patch khoảng 2 điểm phần trăm. Mọi con số lấy từ \code{output/report\_metrics.json}
-của từng bài.}}
+cách tạo token theo hàng tốt hơn theo patch khoảng 2 điểm phần trăm. \st{E3} đọc ảnh như một chuỗi 28 hàng bằng
+\st{LSTM} và \st{GRU}: GRU đạt \st{98,32\%}, LSTM 98,20\%, vượt MLP (96,97\%) và gần CNN (98,91\%) với ít tham số hơn cả hai.
+Mọi con số lấy từ \code{output/report\_metrics.json} của từng bài.}}
 
 % ======================================================================= 1
 \section{Quy định chung và dữ liệu}
@@ -172,6 +173,7 @@ cầu trích dẫn.
 Bài & Tập train & Tập test & Tiền xử lý \\\midrule
 E1 & 60.000 ảnh (toàn bộ) & 10.000 ảnh (toàn bộ) & \code{ToTensor} + \code{Normalize(0.5, 0.5)} (pixel về $[-1, 1]$) \\
 E2 & 5.000 ảnh đầu tiên & 1.000 ảnh đầu tiên (protocol gốc) và 10.000 ảnh (đánh giá bổ sung) & \code{ToTensor} (pixel trong $[0, 1]$) \\
+E3 & 60.000 ảnh (toàn bộ) & 10.000 ảnh (toàn bộ) & Giống E1, để so sánh trực tiếp với MLP/CNN \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -354,6 +356,158 @@ thể thêm LayerNorm, FFN và kết nối tắt để có một khối Transfor
 % ======================================================================= 4
 % ======================================================================= 4
 \section{E3 -- LSTM / GRU trên chuỗi ảnh}
+\subsection{Mục tiêu}
+Xem mỗi ảnh như một \st{chuỗi theo thời gian}, phân loại bằng mạng hồi quy LSTM~\cite{hochreiter1997} và
+GRU~\cite{cho2014}, rồi so sánh với hai baseline không hồi quy MLP và CNN của E1 trên cùng dữ liệu và cùng tiền xử lý.
+
+\subsection{Cách biến ảnh thành chuỗi}
+Nhóm dùng cách \st{mỗi hàng là một bước thời gian}: ảnh $28\times28$ trở thành chuỗi 28 bước, mỗi bước là vector 28 giá
+trị pixel của một hàng, đọc từ trên xuống dưới (\code{sequence\_mode='row'} trong \code{Exercise\_3/models.py}). Mạng phải
+``nhớ'' các hàng đã đọc trong trạng thái ẩn để đến hàng cuối mới quyết định chữ số. Đề cho phép hai hướng: thử hai cách biểu
+diễn, hoặc so sánh LSTM với GRU trên cùng một cách biểu diễn. Nhóm chọn hướng thứ hai. Mã nguồn đã hỗ trợ sẵn cách đọc theo
+cột (\code{sequence\_mode='col'}, hoán đổi hai chiều của ảnh) nhưng chưa được huấn luyện.
+
+\subsection{Kiến trúc}
+\begin{table}[H]
+\centering
+\caption{Hai mô hình hồi quy của E3 (\code{ImageRNNClassifier} trong \code{Exercise\_3/models.py}).}\label{tab:e3-models}
+\begin{tabularx}{\linewidth}{@{}P{1.6cm}LR{2.2cm}@{}}
+\toprule
+Mô hình & Cấu trúc & Tham số \\\midrule
+LSTM & Chuỗi 28 bước $\times$ 28 chiều $\rightarrow$ \code{nn.LSTM}(28, 128, 1 lớp) $\rightarrow$ trạng thái ẩn ở bước cuối $\rightarrow$ Linear$(128, 10)$ & 82.186 \\
+GRU & Giống LSTM, thay bằng \code{nn.GRU}(28, 128, 1 lớp) & 61.962 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Một ô LSTM có 4 cổng (input, forget, output và ứng viên của ô nhớ) và giữ hai trạng thái: trạng thái ẩn $h_t$ và ô nhớ $c_t$.
+GRU gộp lại còn 3 nhóm trọng số (cổng update, cổng reset, ứng viên) và chỉ có $h_t$. Vì vậy với cùng 128 chiều ẩn, GRU có
+khoảng $3/4$ số tham số của phần hồi quy: $3 \cdot 128 \cdot (28 + 128) + 768 = 60.672$ so với
+$4 \cdot 128 \cdot (28 + 128) + 1.024 = 80.896$; cộng lớp ra Linear$(128,10)$ có 1.290 tham số.
+
+\subsection{Huấn luyện}
+Giống hệt E1 để so sánh công bằng: cross-entropy, Adam với learning rate $10^{-3}$, batch 64, 5 epoch trên 60.000 ảnh
+train, trạng thái ẩn khởi tạo bằng 0, đánh giá trên 10.000 ảnh test bằng trọng số sau epoch cuối (\code{Exercise\_3/train.py},
+vòng lặp tự viết).
+
+\subsection{Kết quả}
+\begin{table}[H]
+\centering
+\caption{E3 so với baseline của E1 trên 10.000 ảnh test MNIST (cùng tiền xử lý, cùng thiết lập huấn luyện). Số liệu MLP/CNN
+lấy từ Bảng~\ref{tab:e1-results}.}\label{tab:e3-results}
+\begin{tabularx}{\linewidth}{@{}Lrrrrr@{}}
+\toprule
+Mô hình & Tham số & Train acc. & Test acc. & Macro-F1 & Số ảnh sai \\\midrule
+MLP (E1) & 109.386 & 97,09\% & 96,97\% & 96,95\% & 303 \\
+CNN (E1) & 105.962 & 99,24\% & \st{98,91\%} & \st{98,90\%} & \st{109} \\
+LSTM & 82.186 & 98,53\% & 98,20\% & 98,18\% & 180 \\
+GRU & \st{61.962} & 98,55\% & 98,32\% & 98,30\% & 168 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\fig{\linewidth}{e3_curves.png}
+\caption{Loss và accuracy trên tập train của LSTM và GRU qua 5 epoch (trục hoành đánh số epoch từ 0).}\label{fig:e3-curves}
+\end{figure}
+
+\textbf{Chi phí.} Trên CPU Apple M1, một epoch huấn luyện mất 13,7 giây với LSTM và 11,2 giây với GRU; dự đoán toàn bộ
+10.000 ảnh test mất 2,0 và 1,1 giây (MLP 0,8 giây, CNN 1,2 giây khi đo cùng lần). Thời gian phụ thuộc tải của máy lúc đo, chỉ
+nên đọc như bậc độ lớn. Mạng hồi quy phải xử lý 28 bước \st{tuần tự}, không song song theo chiều thời gian được, nên với số
+tham số ít hơn vẫn không nhanh hơn CNN.
+
+\subsection{Phân tích lỗi}
+\begin{table}[H]
+\centering
+\caption{Ba cặp nhầm lẫn thường gặp nhất (nhãn thật $\rightarrow$ dự đoán, số ảnh).}\label{tab:e3-confusions}
+\begin{tabularx}{\linewidth}{@{}lLLL@{}}
+\toprule
+Mô hình & Thứ 1 & Thứ 2 & Thứ 3 \\\midrule
+LSTM & $4 \rightarrow 9$ (14) & $8 \rightarrow 2$ (11) & $5 \rightarrow 6$ (10) \\
+GRU & $3 \rightarrow 5$ (14) & $7 \rightarrow 2$ (13) & $7 \rightarrow 9$ (10) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\fig{0.62\linewidth}{e3_confusion_gru.png}
+\caption{Confusion matrix của GRU trên 10.000 ảnh test.}\label{fig:e3-cm}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\fig{\linewidth}{e3_errors_lstm.png}\\[2pt]
+\fig{\linewidth}{e3_errors_gru.png}
+\caption{Năm ảnh bị đoán sai đầu tiên trong tập test: LSTM (trên) và GRU (dưới).}\label{fig:e3-errors}
+\end{figure}
+
+Các cặp nhầm của mạng hồi quy là những chữ số có phần trên hoặc phần dưới giống nhau khi đọc từng hàng: 4 và 9 cùng có phần
+trên khép kín hoặc gần khép, 7 và 2 cùng bắt đầu bằng một nét ngang. Lớp kém nhất là chữ số 5 với LSTM (96,6\%) và chữ số 7
+với GRU (97,2\%).
+
+\subsection{Khả năng bắt phụ thuộc theo thời gian}
+Để thấy mỗi mô hình dựa vào phần nào của chuỗi, nhóm đo test accuracy khi mô hình chỉ được thấy \st{$k$ hàng đầu} của ảnh,
+dùng trọng số đã huấn luyện, không học lại (\code{Exercise\_3/report\_metrics.py}). Có hai cách:
+\begin{itemize}
+  \item \st{Che phần dưới:} giữ $k$ hàng đầu, các hàng còn lại đặt về màu nền. Cả bốn mô hình nhận đủ ảnh $28\times28$; riêng
+        LSTM/GRU vẫn đọc đủ 28 bước, trong đó $28-k$ bước cuối là hàng trống.
+  \item \st{Dừng chuỗi sau $k$ hàng} (chỉ áp dụng cho LSTM/GRU): mạng chỉ đọc $k$ bước rồi phân loại ngay.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\fig{\linewidth}{e3_rows_seen.png}
+\caption{Test accuracy theo số hàng đầu tiên mô hình được thấy (10.000 ảnh test).}\label{fig:e3-rows}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Số liệu của Hình~\ref{fig:e3-rows} tại một số giá trị $k$ (test accuracy, \%).}\label{tab:e3-rows}
+\begin{tabularx}{\linewidth}{@{}Lrrrrrr@{}}
+\toprule
+Cách đo & $k=10$ & $k=14$ & $k=18$ & $k=21$ & $k=24$ & $k=28$ \\\midrule
+MLP, che phần dưới & 23,3 & 32,3 & 51,3 & 87,1 & 96,4 & 97,0 \\
+CNN, che phần dưới & 23,4 & 45,3 & 78,2 & 96,7 & 99,0 & 98,9 \\
+LSTM, che phần dưới & 17,1 & 35,0 & 57,7 & 88,0 & 98,0 & 98,2 \\
+GRU, che phần dưới & 9,3 & 32,3 & 61,9 & 92,2 & 98,3 & 98,3 \\
+LSTM, dừng chuỗi & 6,7 & 8,1 & 19,2 & 49,0 & 88,0 & 98,2 \\
+GRU, dừng chuỗi & 9,3 & 8,6 & 16,0 & 55,0 & 88,0 & 98,3 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{itemize}
+  \item \st{Mạng hồi quy giữ được thông tin qua nhiều bước.} Khi che phần dưới, LSTM/GRU phải mang thông tin của $k$ hàng đầu
+        qua $28-k$ bước trống mới tới bước cuối, nơi lớp phân loại đọc trạng thái ẩn. Với $k=21$ (7 bước trống), GRU vẫn đúng
+        92,2\% và LSTM 88,0\%, tức trạng thái ẩn không ``quên'' phần đầu chữ số. Đây là phụ thuộc xa mà RNN thường gặp khó; cơ
+        chế cổng của LSTM/GRU giải quyết được ở độ dài 28 bước này.
+  \item \st{Nhưng mô hình chỉ ``quyết định'' ở cuối chuỗi.} Nếu dừng chuỗi sớm, accuracy giảm mạnh: tại $k=21$ chỉ còn 49--55\%,
+        dù mạng đã thấy đúng các hàng như khi che phần dưới. Khi huấn luyện, mạng luôn đọc đủ 28 hàng và chữ số MNIST thường
+        kết thúc bằng vài hàng trống, nên mạng học cách đưa ra quyết định sau khi đã đi qua đoạn trống ấy; trạng thái ẩn ở
+        giữa chuỗi chưa phải là một dự đoán hoàn chỉnh.
+  \item \st{So với baseline:} khi thấy một phần chữ số ($k=18$), GRU (61,9\%) và LSTM (57,7\%) tốt hơn MLP (51,3\%) nhưng kém
+        CNN (78,2\%). CNN nhận ra các nét cục bộ ở bất cứ đâu chúng xuất hiện, nên dùng phần nhìn thấy hiệu quả hơn. Với $k \le 10$
+        mọi mô hình gần mức đoán ngẫu nhiên (10\%) vì chữ số MNIST nằm ở vùng giữa ảnh, các hàng trên cùng gần như trống.
+\end{itemize}
+
+\subsection{Nhận xét}
+\begin{itemize}
+  \item \st{Đọc ảnh theo hàng là cách biểu diễn hiệu quả:} cả LSTM và GRU vượt MLP (giảm từ 303 xuống 168--180 ảnh sai) với
+        ít tham số hơn. MLP nhìn 784 pixel cùng lúc nhưng không biết pixel nào nằm cạnh pixel nào; RNN dùng chung một bộ trọng
+        số cho mọi hàng và tích luỹ thông tin theo thứ tự trên xuống, gần với cách chia sẻ trọng số của CNN theo một chiều.
+  \item \st{GRU nhỉnh hơn LSTM với ít tham số hơn 25\%} (61.962 so với 82.186): 98,32\% so với 98,20\%, chênh 12 ảnh trên 10.000.
+        Mức chênh này nhỏ, có thể đảo chiều khi chạy lại với seed khác; điều chắc chắn là với chuỗi ngắn 28 bước, ô nhớ riêng
+        của LSTM không đem lại lợi thế. Hai đường cong học (Hình~\ref{fig:e3-curves}) gần như trùng nhau.
+  \item \st{CNN vẫn tốt nhất} (109 ảnh sai), vì tích chập 2D khai thác cấu trúc không gian theo cả hai chiều, còn RNN theo hàng
+        chỉ thấy quan hệ dọc thông qua trạng thái ẩn và quan hệ ngang trong một hàng qua một phép chiếu tuyến tính.
+  \item \st{Không thấy overfitting:} train và test accuracy của LSTM/GRU chênh nhau khoảng 0,3 điểm sau 5 epoch.
+\end{itemize}
+
+\textbf{Hạn chế.} Nhóm mới thử một cách biểu diễn (theo hàng); cách theo cột đã có trong mã nhưng chưa huấn luyện. Như E1,
+bài chưa tách tập validation và \code{train.py} chưa cố định seed, nên mức chênh 0,12 điểm giữa GRU và LSTM chưa đủ để kết
+luận mô hình nào tốt hơn. Mỗi mô hình chỉ có một lớp hồi quy 128 chiều, không dùng LSTM hai chiều (bidirectional).
 
 % ======================================================================= 5
 \section{Tái lập kết quả}
@@ -363,7 +517,8 @@ Trong mỗi thư mục bài tập (sau khi cài thư viện theo \code{README.md
   \item \code{python evaluate.py}: đánh giá và vẽ biểu đồ, confusion matrix, ảnh lỗi.
   \item \code{python report\_metrics.py}: tính các số liệu dùng trong báo cáo này từ trọng số đã lưu (không huấn luyện lại
         mô hình đã lưu; chỉ huấn luyện thử 1 epoch trên một mô hình mới để đo thời gian), kết quả ở
-        \code{output/report\_metrics.json}.
+        \code{output/report\_metrics.json}. Với E3, script này còn nạp trọng số MLP/CNN từ \code{Exercise\_1/output/} để
+        chạy thí nghiệm ``chỉ thấy $k$ hàng đầu'' và vẽ \code{output/rows\_seen.png}.
 \end{itemize}
 
 \section{Sử dụng công cụ AI}
@@ -376,6 +531,8 @@ mọi mô hình, số liệu và nhận xét đều được nhóm hiểu và c�
 \bibitem{lecun1998} Y. LeCun, L. Bottou, Y. Bengio, P. Haffner. Gradient-Based Learning Applied to Document Recognition. \emph{Proceedings of the IEEE}, 86(11), 1998.
 \bibitem{vaswani2017} A. Vaswani et al. Attention Is All You Need. \emph{NeurIPS}, 2017.
 \bibitem{dosovitskiy2021} A. Dosovitskiy et al. An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale. \emph{ICLR}, 2021.
+\bibitem{hochreiter1997} S. Hochreiter, J. Schmidhuber. Long Short-Term Memory. \emph{Neural Computation}, 9(8), 1997.
+\bibitem{cho2014} K. Cho et al. Learning Phrase Representations using RNN Encoder-Decoder for Statistical Machine Translation. \emph{EMNLP}, 2014.
 \bibitem{pytorch} A. Paszke et al. PyTorch: An Imperative Style, High-Performance Deep Learning Library. \emph{NeurIPS}, 2019.
 \end{thebibliography}
 

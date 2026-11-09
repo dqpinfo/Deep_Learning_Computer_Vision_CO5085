@@ -326,7 +326,7 @@ table.plain th { font-size: 13px; color: var(--ink-soft); font-weight: 600; text
             <p>Cả ba bài dùng chung một tập ảnh nhỏ để so sánh công bằng giữa các họ mô hình. Vòng huấn luyện được tự viết bằng PyTorch (forward → loss → backward → optimizer.step), không dùng các hàm huấn luyện đóng gói sẵn.</p>
             <div class="meta">
                 <span class="chip">E1, E2: hạn 02/11/2026</span>
-                <span class="chip">E3: hạn 09/11/2026</span>
+                <span class="chip">E3: hạn 09/11/2026 · đã xong</span>
             </div>
         </div>
     </div>
@@ -338,7 +338,7 @@ table.plain th { font-size: 13px; color: var(--ink-soft); font-weight: 600; text
             <div class="grid">
                 <div class="card"><h3>E1 · toàn bộ MNIST</h3><p>Train 60.000 ảnh, test 10.000 ảnh, chuẩn hoá pixel về [−1, 1].</p></div>
                 <div class="card"><h3>E2 · tập con</h3><p>Train 5.000 ảnh; đánh giá trên 1.000 ảnh (protocol gốc) và toàn bộ 10.000 ảnh test.</p></div>
-                <div class="card"><h3>E3 · sắp tới</h3><p>Dùng lại MNIST, so sánh LSTM/GRU với MLP/CNN của E1.</p></div>
+                <div class="card"><h3>E3 · toàn bộ MNIST</h3><p>Cùng split và tiền xử lý với E1 để so sánh trực tiếp LSTM/GRU với MLP/CNN.</p></div>
             </div>
         </section>
 
@@ -426,6 +426,22 @@ table.plain th { font-size: 13px; color: var(--ink-soft); font-weight: 600; text
                     </ul>
                 </div>
             </div>
+            <div class="table-wrap card" style="margin-top:16px">
+                <table class="plain">
+                    <tr><th>Mô hình</th><th>Tham số</th><th>Test accuracy</th><th>Số ảnh sai / 10.000</th></tr>
+                    <tr><td>MLP (E1)</td><td>109.386</td><td>96,97%</td><td>303</td></tr>
+                    <tr><td>CNN (E1)</td><td>105.962</td><td><strong>98,91%</strong></td><td>109</td></tr>
+                    <tr><td>LSTM, mỗi hàng là một bước</td><td>82.186</td><td>98,20%</td><td>180</td></tr>
+                    <tr><td>GRU, mỗi hàng là một bước</td><td>61.962</td><td>98,32%</td><td>168</td></tr>
+                </table>
+            </div>
+            <div class="card" style="margin-top:16px">
+                <img src="assets/e3/rows_seen.png" alt="Test accuracy theo số hàng đầu tiên mô hình được thấy, cho MLP, CNN, LSTM và GRU" style="width:100%;height:auto;border-radius:8px">
+                <p style="margin-top:8px">Khi chỉ thấy k hàng đầu của ảnh: LSTM/GRU vẫn nhớ phần đầu chữ số qua nhiều hàng trống (che phần dưới), nhưng chỉ đưa ra quyết định tốt ở cuối chuỗi 28 bước (dừng chuỗi sớm thì accuracy giảm mạnh). CNN dùng phần ảnh nhìn thấy hiệu quả nhất.</p>
+            </div>
+            <div class="callout" style="margin-top:16px">
+                <strong>Kết luận:</strong> đọc ảnh theo hàng bằng LSTM/GRU tốt hơn MLP với ít tham số hơn, nhưng vẫn kém CNN. GRU ngang LSTM (chênh 12 ảnh) với ít hơn 25% tham số.
+            </div>
             <div class="actions" style="margin-top:16px">
                 <a class="btn primary" href="https://github.com/dqpinfo/Deep_Learning_Computer_Vision_CO5085/tree/main/Exercise_3">Mã nguồn E3</a>
             </div>
@@ -434,7 +450,7 @@ table.plain th { font-size: 13px; color: var(--ink-soft); font-weight: 600; text
         <section>
             <div class="section-head"><span class="num">—</span><h2>Báo cáo chung E1–E3</h2></div>
             <div class="callout">
-                <strong>Một file PDF duy nhất cho cả ba bài</strong>, mỗi bài một chương: dữ liệu, kiến trúc, huấn luyện, bảng số liệu, đường cong học và nhận xét. Hiện đã có E1 và E2; E3 sẽ bổ sung ở hạn W10.
+                <strong>Một file PDF duy nhất cho cả ba bài</strong>, mỗi bài một chương: dữ liệu, kiến trúc, huấn luyện, bảng số liệu, đường cong học và nhận xét. Đã đủ E1, E2 và E3.
             </div>
             <div class="actions" style="margin-top:16px">
                 <a class="btn primary" href="https://github.com/dqpinfo/Deep_Learning_Computer_Vision_CO5085/blob/main/Reports/exercises.pdf">Báo cáo E1–E3 (PDF)</a>
