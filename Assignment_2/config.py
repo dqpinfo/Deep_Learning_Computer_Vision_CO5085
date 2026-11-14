@@ -72,5 +72,6 @@ TRAIN_HPARAMS = {
     "lr_decoder": 6e-4,         # Randomly initialized decoder / head: 10x larger
     "epochs": 40,
     "scheduler": "poly (power 1.0) + 1 epoch warmup",
+    "poly_power": 1.0,
     "loss": "cross-entropy (ignore border)",
 }

@@ -238,6 +238,5 @@ Assignment_1/report/A1_report.html
 Assignment_2/data/
 Assignment_2/output/runs/*.pth
 Assignment_2/output/runs/*.tmp
-Assignment_2/output/smoke/*.pth
-Assignment_2/output/smoke/*.tmp
+Assignment_2/output/smoke/
 Assignment_2/paper/*.pdf
