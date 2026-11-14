@@ -188,7 +188,11 @@ def run(args):
     optimizer, scheduler = make_optimizer(model, epochs, len(train_loader))
     scaler = torch.amp.GradScaler("cuda", enabled = use_amp)
 
-    ckpt_path = run_dir / f"{exp['name']}_last.pth"
+    # Resume checkpoint (~4x the model size with optimizer state + best weights). On Colab it goes to the local disk:
+    # overwriting it on Google Drive every epoch would fill the Drive trash
+    ckpt_dir = Path(args.ckpt_dir) if args.ckpt_dir else run_dir
+    ckpt_dir.mkdir(parents = True, exist_ok = True)
+    ckpt_path = ckpt_dir / f"{exp['name']}_last.pth"
     if ckpt_path.exists():
         log, best_miou, best_state = load_checkpoint(ckpt_path, model, optimizer, scheduler, scaler)
         print(f"[{exp['name']}] chạy tiếp sau epoch {len(log['history'])}/{epochs}")
@@ -257,6 +261,7 @@ def parse_args():
     parser.add_argument("--workers", type = int, default = 2)
     parser.add_argument("--subset", type = int, default = 0, help = "Chạy thử với N ảnh mỗi tập (0 = dùng toàn bộ)")
     parser.add_argument("--run-dir", default = None, help = "Thư mục lưu log/checkpoint (mặc định output/runs)")
+    parser.add_argument("--ckpt-dir", default = None, help = "Thư mục checkpoint chạy tiếp (mặc định = --run-dir)")
     parser.add_argument("--force", action = "store_true", help = "Huấn luyện lại dù đã có log hoàn tất")
     parser.add_argument("--device", default = None, help = "Ép thiết bị (cuda/mps/cpu); mặc định tự chọn")
     parser.add_argument("--no-amp", action = "store_true", help = "Tắt mixed precision trên CUDA")

@@ -23,6 +23,7 @@ def main():
     parser.add_argument("--arch", choices = list(config.ARCHS), default = None, help = "Chỉ chạy một kiến trúc")
     parser.add_argument("--only", nargs = "*", default = None, help = "Chỉ chạy các cấu hình này")
     parser.add_argument("--epochs", type = int, default = None)
+    parser.add_argument("--ckpt-dir", default = None, help = "Thư mục checkpoint chạy tiếp (mặc định = --run-dir)")
     parser.add_argument("--workers", type = int, default = 2)
     args = parser.parse_args()
 
@@ -30,6 +31,8 @@ def main():
         if (args.arch and exp["arch"] != args.arch) or (args.only and exp["name"] not in args.only):
             continue
         cmd = [sys.executable, "train.py", "--exp", exp["name"], "--run-dir", args.run_dir, "--workers", str(args.workers)]
+        if args.ckpt_dir:
+            cmd += ["--ckpt-dir", args.ckpt_dir]
         if args.epochs:
             cmd += ["--epochs", str(args.epochs)]
         print("\n>>>", " ".join(cmd), flush = True)
