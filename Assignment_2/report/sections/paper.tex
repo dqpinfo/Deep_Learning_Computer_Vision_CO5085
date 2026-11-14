@@ -1,0 +1,80 @@
+% Paper analysis section of the A2.2 report (SegFormer, Xie et al., NeurIPS 2021).
+% Every number about the paper below was checked against the arXiv version (2105.15203).
+\section{Phân tích paper SegFormer}\label{sec:paper}
+
+\subsection{Thông tin và lý do chọn}
+E.~Xie, W.~Wang, Z.~Yu, A.~Anandkumar, J.~M.~Alvarez, P.~Luo. \emph{SegFormer: Simple and Efficient Design for Semantic
+Segmentation with Transformers}. NeurIPS 2021~\cite{xie2021}. Mã nguồn chính thức: \url{https://github.com/NVlabs/SegFormer};
+trọng số encoder dùng trong bài: \code{nvidia/mit-b2} trên Hugging Face~\cite{wolf2020}. Nhóm chọn paper này vì một trong hai
+mô hình của nhóm chính là SegFormer-B2, nên các nhận định của paper kiểm chứng được trực tiếp bằng thí nghiệm của nhóm.
+
+\subsection{Vấn đề paper giải quyết}
+Trước SegFormer, các mô hình phân đoạn dùng Transformer gặp hai trở ngại. Thứ nhất, ViT gốc chỉ cho đặc trưng ở một tỉ lệ
+và độ phân giải thấp, trong khi phân đoạn cần cả chi tiết nhỏ (biên vật) lẫn ngữ cảnh rộng. Thứ hai, ViT dùng
+positional encoding có kích thước cố định; khi ảnh test lớn hơn ảnh train, positional encoding phải nội suy và độ chính
+xác giảm. Các hướng đi trước đó (SETR, PVT, Swin) chủ yếu thiết kế lại encoder và vẫn dùng bộ giải mã nặng. SegFormer
+đặt giả thiết: \st{nếu encoder đủ tốt ở nhiều tỉ lệ thì bộ giải mã có thể rất nhẹ}.
+
+\subsection{Phương pháp}
+\textbf{Encoder Mix Transformer (MiT).} Gồm 4 tầng cho ra đặc trưng ở 1/4, 1/8, 1/16, 1/32 độ phân giải ảnh, giống kim
+tự tháp đặc trưng của CNN. Mỗi tầng có ba điểm khác ViT:
+\begin{itemize}
+  \item \st{Overlapped patch merging:} cắt patch bằng tích chập có bước trượt nhỏ hơn kích thước nhân (ví dụ nhân 7, bước 4
+        ở tầng đầu), nên các patch chồng lên nhau và giữ được tính liên tục cục bộ quanh biên patch.
+  \item \st{Efficient self-attention:} trước khi tính attention, chuỗi key/value được rút ngắn $R$ lần ($R = 64, 16, 4, 1$
+        ở 4 tầng, tức giảm 8, 4, 2, 1 lần theo mỗi chiều không gian), giảm chi phí từ $O(N^2)$ xuống $O(N^2/R)$. Nhờ vậy attention toàn cục vẫn
+        chạy được ở độ phân giải 1/4.
+  \item \st{Mix-FFN:} chèn một tích chập depthwise $3\times3$ vào khối FFN. Tích chập có zero-padding ``rò rỉ'' thông tin
+        vị trí, nên mô hình \st{không cần positional encoding} và không bị ràng buộc vào kích thước ảnh lúc train.
+\end{itemize}
+\textbf{Bộ giải mã toàn MLP.} Bốn bản đồ đặc trưng được chiếu về cùng $C$ kênh bằng một lớp tuyến tính, phóng lên 1/4 độ
+phân giải, ghép lại, trộn bằng một lớp tuyến tính nữa rồi dự đoán $N_{cls}$ lớp. Với B2, $C = 768$ và bộ giải mã chỉ có
+3,3 triệu tham số. Paper lập luận rằng tầng nông của MiT đã nhìn cục bộ còn tầng sâu nhìn gần như toàn ảnh (minh hoạ
+bằng effective receptive field), nên ghép đặc trưng các tầng là đủ, không cần module ngữ cảnh như ASPP.
+
+\textbf{Loss và huấn luyện.} Chỉ dùng cross-entropy theo điểm ảnh; paper nói rõ không dùng OHEM, loss phụ hay cân bằng lớp.
+AdamW, learning rate $6\times10^{-5}$, lịch ``poly'' hệ số 1,0; encoder pretrained ImageNet-1k, bộ giải mã khởi tạo ngẫu
+nhiên. Augmentation: thay đổi kích thước ngẫu nhiên tỉ lệ 0,5--2,0, lật ngang, cắt ngẫu nhiên $512\times512$ (ADE20K,
+COCO-Stuff) hoặc $1024\times1024$ (Cityscapes); 160 nghìn vòng lặp, batch 16, trên 8 GPU V100.
+
+\subsection{Thí nghiệm của paper}
+Ba tập: ADE20K (150 lớp, 20.210 ảnh), Cityscapes (19 lớp, 5.000 ảnh độ phân giải cao) và COCO-Stuff (172 lớp, 164 nghìn
+ảnh); metric mIoU, kèm số tham số, FLOPs và tốc độ. Các kết quả nhóm thấy quan trọng nhất (Bảng~\ref{tab:paper-numbers}):
+
+\begin{table}[H]
+\centering
+\caption{Một số kết quả của paper được nhóm đối chiếu (số lấy từ Bảng 1 và Bảng 5 của paper).}\label{tab:paper-numbers}
+\begin{tabularx}{\linewidth}{@{}P{4.6cm}L@{}}
+\toprule
+Thí nghiệm & Kết quả \\\midrule
+Cỡ mô hình (Bảng 1a) & SegFormer-B2: encoder 24,2M + decoder 3,3M tham số; mIoU 46,5 (ADE20K), 81,0 (Cityscapes), 44,6 (COCO-Stuff), test một tỉ lệ \\
+Bộ giải mã MLP với encoder CNN (Bảng 1d, ADE20K) & ResNet-50 + bộ giải mã MLP: 34,7 mIoU; MiT-B2 + cùng bộ giải mã: 45,4. Bộ giải mã nhẹ chỉ hiệu quả khi encoder là Transformer \\
+Mix-FFN và positional encoding (Bảng 1c, Cityscapes) & Train $768\times768$, test $1024\times2048$: dùng positional encoding giảm 77,3 $\rightarrow$ 74,0; dùng Mix-FFN chỉ giảm 80,5 $\rightarrow$ 79,8 \\
+Số kênh $C$ của bộ giải mã (Bảng 1b) & 256 $\rightarrow$ 44,9; 768 $\rightarrow$ 45,4; 2048 $\rightarrow$ 45,6: tăng kênh ít tác dụng \\
+Độ bền với ảnh hỏng (Bảng 5, Cityscapes-C) & SegFormer-B5 so với DeepLabv3+ (ResNet-50): ảnh gốc 82,4 / 76,6; nhiễu Gauss 57,8 / 6,5; làm mờ Gauss 69,8 / 57,7; nén JPEG 68,4 / 42,0 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\textbf{Kết luận của paper.} SegFormer đạt mIoU cao hơn các phương pháp cùng thời với ít tham số và FLOPs hơn; encoder không
+positional encoding chịu được việc đổi độ phân giải lúc test; và mô hình bền hơn hẳn CNN khi ảnh bị nhiễu.
+
+\subsection{Hạn chế của paper}
+\begin{itemize}
+  \item \st{So sánh độ bền không cùng cỡ.} Bảng 5 chỉ thử SegFormer-B5 (khoảng 85 triệu tham số) với các mô hình nhỏ hơn
+        nhiều; paper không cho biết B2 có còn bền như vậy không, cũng không so với một CNN cùng cỡ được huấn luyện cùng
+        công thức. Thí nghiệm ở Mục~\ref{sec:robust} của nhóm đo đúng điểm này.
+  \item \st{Công thức huấn luyện khác nhau giữa các mô hình so sánh.} Kết quả của mô hình khác lấy lại từ paper gốc, với
+        lịch huấn luyện và augmentation khác, nên chênh lệch không chỉ do kiến trúc.
+  \item \st{Phụ thuộc dữ liệu và tính toán lớn.} Encoder cần pretrain ImageNet; mọi thí nghiệm dùng tập lớn (vài nghìn đến
+        hàng trăm nghìn ảnh) và 8 GPU. Paper không thử chế độ ít nhãn.
+  \item \st{Biên vật.} Bộ giải mã dự đoán ở 1/4 độ phân giải rồi phóng bilinear; với vật nhỏ hoặc biên mảnh (lông, tai) điều
+        này có thể làm mất chi tiết. Paper chỉ minh hoạ định tính trên Cityscapes.
+  \item Tác giả tự nêu: chưa rõ mô hình nhỏ nhất (3,7M tham số) có chạy được trên chip biên chỉ có 100~KB bộ nhớ không.
+\end{itemize}
+
+\subsection{Điều kiện trên tập của nhóm khác với paper}
+Oxford-IIIT Pet khác các tập của paper ở ba điểm: (1) mỗi ảnh chỉ có \st{một con vật và nền}, nên ngữ cảnh toàn cảnh mà
+attention mạnh ở ADE20K ít quan trọng hơn; (2) phần khó là \st{phân biệt 37 giống rất giống nhau}, gần với phân loại tinh
+hơn là phân đoạn cảnh; (3) tập train chỉ có 3.303 ảnh, nhỏ hơn ADE20K khoảng 6 lần. Nhóm cũng huấn luyện ngắn hơn nhiều
+(40 epoch, khoảng 8 nghìn vòng lặp) ở $384\times384$ trên một GPU T4.
