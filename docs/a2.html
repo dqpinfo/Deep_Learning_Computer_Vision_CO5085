@@ -326,7 +326,7 @@ table.plain th { font-size: 13px; color: var(--ink-soft); font-weight: 600; text
             <p>Dạy máy tô từng điểm ảnh trong ảnh chó mèo: đâu là nền, đâu là con vật và con vật thuộc giống nào trong 37 giống. Nhóm so sánh một mô hình CNN với một mô hình Transformer và phân tích paper SegFormer (NeurIPS 2021).</p>
             <div class="meta">
                 <span class="chip">A2.1: 02/11/2026 · đã xong</span>
-                <span class="chip">A2.2: 16/11/2026</span>
+                <span class="chip">A2.2: 16/11/2026 · đã xong</span>
             </div>
         </div>
     </div>
@@ -405,15 +405,16 @@ table.plain th { font-size: 13px; color: var(--ink-soft); font-weight: 600; text
                     </ul>
                 </div>
                 <div class="card">
-                    <h3>Nhóm sẽ kiểm chứng ở A2.2</h3>
+                    <h3>Nhóm đã kiểm chứng</h3>
                     <ul class="checklist">
-                        <li>Giải mã ở 1/4 độ phân giải có làm biên lông, tai, đuôi kém hơn U-Net?</li>
-                        <li>SegFormer-B2 có thắng một CNN mạnh cùng cỡ trên tập nhỏ hơn nhiều ADE20K/Cityscapes?</li>
-                        <li>Chi phí thực tế trên GPU T4</li>
+                        <li>Thắng CNN cùng cỡ: có (89,2% vs 46,1% mIoU), nhưng U-Net chưa hội tụ với công thức của SegFormer</li>
+                        <li>Chịu được đổi độ phân giải test: có (giảm tối đa 2,4 điểm từ 256 đến 640)</li>
+                        <li>Bền với ảnh hỏng: bền với nhiễu, không bền với làm mờ / JPEG nặng</li>
+                        <li>Hiệu quả: trên T4 chậm hơn 1,7 lần và tốn gấp 1,8 lần bộ nhớ so với U-Net</li>
                     </ul>
                 </div>
             </div>
-            <p class="lead" style="margin-top:14px">Bản đầy đủ (phương pháp, thí nghiệm của paper, hạn chế, đối chiếu với kết quả của nhóm) sẽ có ở mốc A2.2.</p>
+            <p class="lead" style="margin-top:14px">Bản đầy đủ (vấn đề, phương pháp, loss, thí nghiệm và con số của paper, hạn chế, đối chiếu với kết quả của nhóm) ở mục 4 và 7 của báo cáo A2.2.</p>
         </section>
 
         <section>
@@ -431,17 +432,17 @@ table.plain th { font-size: 13px; color: var(--ink-soft); font-weight: 600; text
                     <ul class="checklist">
                         <li>Cross-entropy bỏ qua viền; AdamW, weight decay 0,01</li>
                         <li>LR encoder 6e-5, bộ giải mã 6e-4; warmup 1 epoch + poly</li>
-                        <li>40 epoch, batch 16, ảnh 384×384, mixed precision trên Colab T4</li>
+                        <li>15 epoch (giảm từ 40 do hạn mức GPU), batch 16, ảnh 384×384, mixed precision trên Colab T4</li>
                         <li>Chọn checkpoint theo mIoU validation, test đúng một lần</li>
                     </ul>
                 </div>
                 <div class="card">
-                    <h3>8 lần huấn luyện ở A2.2</h3>
+                    <h3>8 lần huấn luyện + đánh giá thêm</h3>
                     <ul class="checklist">
                         <li>2 mô hình × 100% ảnh train: so sánh chính</li>
                         <li>2 mô hình × 50% / 25% / 10% ảnh train: mô hình nào cần ít nhãn hơn</li>
                         <li>Phân tích lỗi: IoU từng giống, nhầm giống cùng loài so với nhầm chó ↔ mèo</li>
-                        <li>Mở rộng: thử chéo trên ảnh chó mèo của Pascal VOC, demo</li>
+                        <li>Mở rộng: đổi độ phân giải test và ảnh nhiễu / mờ / JPEG để kiểm chứng tuyên bố của paper</li>
                     </ul>
                 </div>
             </div>
@@ -453,7 +454,30 @@ table.plain th { font-size: 13px; color: var(--ink-soft); font-weight: 600; text
         <section>
             <div class="section-head"><span class="num">06</span><h2>Kết quả, thảo luận và hạn chế</h2></div>
             <div class="card">
-                <p>Sẽ cập nhật ở mốc A2.2 (16/11/2026): bảng mIoU / Dice / chi phí, đường học, ảnh lỗi, đường cong theo lượng dữ liệu và thảo luận.</p>
+                <table class="plain">
+                    <tr><th>Test (3.662 ảnh)</th><th>mIoU</th><th>mDice</th><th>IoU thú/nền</th><th>Giống đúng / ảnh</th><th>Giây/epoch</th><th>Bộ nhớ</th><th>Ảnh/giây</th></tr>
+                    <tr><td>U-Net + ResNet-50</td><td>46,1%</td><td>58,3%</td><td>96,9%</td><td>72,4%</td><td>93</td><td>4,6 GB</td><td>134</td></tr>
+                    <tr><td>SegFormer-B2</td><td><strong>89,2%</strong></td><td><strong>93,9%</strong></td><td><strong>98,1%</strong></td><td><strong>94,7%</strong></td><td>128</td><td>8,3 GB</td><td>77</td></tr>
+                </table>
+            </div>
+            <div class="split" style="margin-top:16px">
+                <div class="card"><h3>Khác biệt nằm ở nhận giống</h3><p>Hai mô hình khoanh con vật gần như nhau (IoU thú/nền 98,1% và 96,9%). U-Net gán sai giống cùng loài cho 30% điểm ảnh thú, SegFormer chỉ 5%. SegFormer tốt hơn ở cả 37 giống.</p></div>
+                <div class="card"><h3>SegFormer cần rất ít nhãn</h3><p>Với 10% ảnh train (9 ảnh mỗi giống), SegFormer còn 83,4% mIoU, vẫn hơn U-Net dùng toàn bộ dữ liệu; U-Net còn 4,8%.</p></div>
+            </div>
+            <div class="card" style="margin-top:16px">
+                <img src="assets/a2/learning_curves.png" alt="Loss và mIoU validation theo epoch của hai mô hình" style="width:100%;height:auto;border-radius:8px">
+            </div>
+            <div class="card" style="margin-top:16px">
+                <img src="assets/a2/data_efficiency.png" alt="mIoU, IoU thú/nền và độ chính xác giống theo số ảnh train" style="width:100%;height:auto;border-radius:8px">
+            </div>
+            <div class="card" style="margin-top:16px">
+                <img src="assets/a2/robustness.png" alt="mIoU khi đổi độ phân giải test và khi ảnh bị nhiễu, mờ, nén JPEG" style="width:100%;height:auto;border-radius:8px">
+            </div>
+            <div class="card" style="margin-top:16px">
+                <img src="assets/a2/examples.png" alt="Ảnh test điển hình và bản đồ lỗi của hai mô hình" style="width:100%;height:auto;border-radius:8px">
+            </div>
+            <div class="callout" style="margin-top:16px">
+                <strong>Hạn chế:</strong> U-Net chưa hội tụ sau 15 epoch với learning rate của SegFormer, nên khoảng cách bị phóng đại; mỗi cấu hình chạy một lần; đánh giá thêm dùng 1.000 ảnh test; tập test còn ảnh có trimap bị đảo ngược (con vật gán là nền).
             </div>
         </section>
 
@@ -461,11 +485,12 @@ table.plain th { font-size: 13px; color: var(--ink-soft); font-weight: 600; text
             <div class="section-head"><span class="num">07</span><h2>Hai mốc nộp</h2></div>
             <ul class="timeline">
                 <li class="done"><div class="date">A2.1 · 02/11/2026 <span class="status done">Đã hoàn thành</span></div><div class="what">Chốt chủ đề, paper, dữ liệu và metric; EDA, DataLoader, hai mô hình, kế hoạch thí nghiệm</div></li>
-                <li><div class="date">A2.2 · 16/11/2026 <span class="status">Đang thực hiện</span></div><div class="what">Huấn luyện 8 cấu hình, so sánh, phân tích paper đầy đủ, demo và video</div></li>
+                <li class="done"><div class="date">A2.2 · 16/11/2026 <span class="status done">Đã hoàn thành</span></div><div class="what">Huấn luyện 8 cấu hình, so sánh, phân tích paper đầy đủ, demo và video</div></li>
             </ul>
             <div class="actions" style="margin-top:16px">
                 <a class="btn primary" href="https://github.com/dqpinfo/Deep_Learning_Computer_Vision_CO5085/tree/main/Assignment_2">Mã nguồn A2</a>
                 <a class="btn primary" href="https://github.com/dqpinfo/Deep_Learning_Computer_Vision_CO5085/blob/main/Reports/A2_1_report.pdf">Báo cáo A2.1 (PDF)</a>
+                <a class="btn primary" href="https://github.com/dqpinfo/Deep_Learning_Computer_Vision_CO5085/blob/main/Reports/A2_2_report.pdf">Báo cáo A2.2 (PDF)</a>
                 <a class="btn pending" href="#" aria-disabled="true">Video demo (A2.2)</a>
                 <a class="btn pending" href="#" aria-disabled="true">Video trình bày (A2.2)</a>
                 <a class="btn" href="index.html">← Về trang chủ</a>

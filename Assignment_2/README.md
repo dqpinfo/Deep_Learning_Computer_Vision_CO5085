@@ -57,10 +57,11 @@ mkdir -p paper && curl -L -o paper/SegFormer_NeurIPS2021_arXiv2105.15203.pdf htt
 
 ## Mốc A2.2 (16/11/2026) — Huấn luyện, so sánh, phân tích paper
 
-- 8 lần huấn luyện trên Google Colab (GPU T4): 2 mô hình × 4 lượng dữ liệu train (100%, 50%, 25%, 10%) để xem mô hình nào cần ít nhãn hơn.
-- Bảng số liệu, đường học, IoU từng giống, nhầm giống cùng loài so với nhầm chó ↔ mèo, ảnh lỗi điển hình.
-- Phân tích đầy đủ paper SegFormer và đối chiếu với kết quả của nhóm.
-- Phần mở rộng dự kiến: thử chéo trên ảnh chó/mèo của Pascal VOC, demo.
+- 8 lần huấn luyện trên Google Colab (GPU T4, 15 epoch): 2 mô hình × 4 lượng dữ liệu train (100%, 50%, 25%, 10%).
+- Kết quả chính trên 3.662 ảnh test: **SegFormer-B2 89,2% mIoU**, U-Net + ResNet-50 46,1%. Hai mô hình khoanh con vật gần như nhau (IoU thú/nền 98,1% và 96,9%); khác biệt nằm ở nhận giống (94,7% và 72,4% ảnh đúng giống). Với 10% ảnh train, SegFormer vẫn đạt 83,4%.
+- Kiểm chứng tuyên bố của paper: SegFormer giữ mIoU khi đổi độ phân giải test và bền với nhiễu, nhưng không bền với làm mờ / JPEG nặng; trên T4 nó chậm và tốn bộ nhớ hơn U-Net.
+- Hạn chế chính: U-Net chưa hội tụ với công thức huấn luyện của SegFormer.
+- **Báo cáo A2.2**: [`Reports/A2_2_report.pdf`](../Reports/A2_2_report.pdf) (gồm phân tích đầy đủ paper SegFormer). Log của từng lần chạy ở `output/runs/`, hình ở `output/a2_2/`.
 
 ## Cách chạy
 
@@ -68,6 +69,16 @@ mkdir -p paper && curl -L -o paper/SegFormer_NeurIPS2021_arXiv2105.15203.pdf htt
 pip install -r requirements.txt
 python eda.py          # tải dữ liệu (lần đầu), tạo split, vẽ hình EDA vào output/eda/
 python smoke_test.py   # kiểm tra hai mô hình + DataLoader + metric, ghi output/protocol_table.md
+```
+
+Huấn luyện (A2.2) cần GPU. Cách dễ nhất là mở [`colab_a2_2.ipynb`](https://colab.research.google.com/github/dqpinfo/Deep_Learning_Computer_Vision_CO5085/blob/main/Assignment_2/colab_a2_2.ipynb) trên Colab (GPU T4) và chọn Run all. Các lệnh tương ứng:
+
+```bash
+python train.py --exp segformer_b2_f100 --subset 64 --epochs 1   # chạy thử nhanh, không dùng cho kết quả
+python run_all.py --epochs 15                                     # 8 cấu hình, bỏ qua cấu hình đã xong
+python eval_extra.py --arch unet_r50                              # đổi độ phân giải test + ảnh hỏng
+python eval_extra.py --arch segformer_b2
+python analyze.py                                                 # bảng LaTeX + hình vào output/a2_2/
 ```
 
 ## Cấu trúc thư mục
@@ -80,6 +91,12 @@ python smoke_test.py   # kiểm tra hai mô hình + DataLoader + metric, ghi out
 | `models.py` | U-Net + ResNet-50 (timm) và SegFormer-B2 (Hugging Face) |
 | `metrics.py` | mIoU, Dice, pixel accuracy, IoU thú/nền từ ma trận nhầm lẫn |
 | `smoke_test.py` | Kiểm tra pipeline mốc A2.1 |
+| `train.py` | Huấn luyện một cấu hình: AdamW, warmup + poly, fp16, checkpoint mỗi epoch, chọn epoch theo mIoU validation, đánh giá test một lần |
+| `run_all.py` | Chạy lần lượt 8 cấu hình (2 mô hình × 4 lượng dữ liệu) |
+| `eval_extra.py` | Đánh giá thêm mô hình 100%: đổi độ phân giải test, ảnh nhiễu / mờ / nén JPEG |
+| `analyze.py` | Đọc log, sinh bảng LaTeX (`report/generated/`) và hình (`output/a2_2/`) |
+| `colab_a2_2.ipynb` | Notebook Colab chạy toàn bộ A2.2 |
+| `output/runs/` | Log JSON của từng lần chạy (trọng số `.pth` không commit) |
 | `splits/pet_split.json` | Danh sách ảnh của từng split (cố định) |
 | `report/` | Mã nguồn LaTeX báo cáo |
 | `paper/` | Bản PDF paper SegFormer để đọc offline (tải bằng lệnh ở trên, không commit) |

@@ -1,0 +1,488 @@
+{
+ "runs": [
+  {
+   "name": "unet_r50_f100",
+   "arch": "unet_r50",
+   "fraction": 1.0,
+   "train_images": 3303,
+   "params": 32521606,
+   "epochs": 15,
+   "best_epoch": 15,
+   "val_miou": 0.4845186705092934,
+   "test_miou": 0.4605608670830379,
+   "test_mdice": 0.5830869340972527,
+   "test_pixel_acc": 0.8589315622918738,
+   "test_pet_iou": 0.9694756373341857,
+   "test_breed_acc_image": 0.7244675040961224,
+   "train_min": 23.132982184766668,
+   "sec_per_epoch": 92.53192873906667,
+   "peak_mem_gb": 4.608312129974365,
+   "img_per_sec": 134.3026425666332,
+   "gpu": "Tesla T4"
+  },
+  {
+   "name": "unet_r50_f50",
+   "arch": "unet_r50",
+   "fraction": 0.5,
+   "train_images": 1650,
+   "params": 32521606,
+   "epochs": 15,
+   "best_epoch": 15,
+   "val_miou": 0.2598130800232747,
+   "test_miou": 0.25460290693118703,
+   "test_mdice": 0.3501347170357693,
+   "test_pixel_acc": 0.7898885677809636,
+   "test_pet_iou": 0.9663519054047044,
+   "test_breed_acc_image": 0.4841616602949208,
+   "train_min": 11.831093926050016,
+   "sec_per_epoch": 47.324375704200065,
+   "peak_mem_gb": 4.608312129974365,
+   "img_per_sec": 132.04432603081625,
+   "gpu": "Tesla T4"
+  },
+  {
+   "name": "unet_r50_f25",
+   "arch": "unet_r50",
+   "fraction": 0.25,
+   "train_images": 812,
+   "params": 32521606,
+   "epochs": 15,
+   "best_epoch": 14,
+   "val_miou": 0.12752148545328731,
+   "test_miou": 0.12406014271264088,
+   "test_mdice": 0.1825373940581741,
+   "test_pixel_acc": 0.7291504624943942,
+   "test_pet_iou": 0.9465091483327812,
+   "test_breed_acc_image": 0.2815401419989077,
+   "train_min": 5.804103657799957,
+   "sec_per_epoch": 23.21641463119983,
+   "peak_mem_gb": 4.608312129974365,
+   "img_per_sec": 133.3948904620386,
+   "gpu": "Tesla T4"
+  },
+  {
+   "name": "unet_r50_f10",
+   "arch": "unet_r50",
+   "fraction": 0.1,
+   "train_images": 332,
+   "params": 32521606,
+   "epochs": 15,
+   "best_epoch": 13,
+   "val_miou": 0.049215875666423124,
+   "test_miou": 0.04766130376688415,
+   "test_mdice": 0.06493495686863322,
+   "test_pixel_acc": 0.6724162023822088,
+   "test_pet_iou": 0.9074700117536919,
+   "test_breed_acc_image": 0.10622610595303113,
+   "train_min": 2.398074338933323,
+   "sec_per_epoch": 9.592297355733292,
+   "peak_mem_gb": 4.608312129974365,
+   "img_per_sec": 133.45218590576752,
+   "gpu": "Tesla T4"
+  },
+  {
+   "name": "segformer_b2_f100",
+   "arch": "segformer_b2",
+   "fraction": 1.0,
+   "train_images": 3303,
+   "params": 27375846,
+   "epochs": 15,
+   "best_epoch": 11,
+   "val_miou": 0.8945352639429175,
+   "test_miou": 0.8915069841453882,
+   "test_mdice": 0.9389013749213122,
+   "test_pixel_acc": 0.97490380723248,
+   "test_pet_iou": 0.9814154539833764,
+   "test_breed_acc_image": 0.9470234844347352,
+   "train_min": 32.016281586849985,
+   "sec_per_epoch": 128.06512634739994,
+   "peak_mem_gb": 8.27426815032959,
+   "img_per_sec": 76.7313679716779,
+   "gpu": "Tesla T4"
+  },
+  {
+   "name": "segformer_b2_f50",
+   "arch": "segformer_b2",
+   "fraction": 0.5,
+   "train_images": 1650,
+   "params": 27375846,
+   "epochs": 15,
+   "best_epoch": 15,
+   "val_miou": 0.8873342083142197,
+   "test_miou": 0.8818434117971566,
+   "test_mdice": 0.9324401485210986,
+   "test_pixel_acc": 0.9724534507588695,
+   "test_pet_iou": 0.980508913095936,
+   "test_breed_acc_image": 0.940196613872201,
+   "train_min": 16.278513261400015,
+   "sec_per_epoch": 65.11405304560006,
+   "peak_mem_gb": 8.27426815032959,
+   "img_per_sec": 77.8946148099367,
+   "gpu": "Tesla T4"
+  },
+  {
+   "name": "segformer_b2_f25",
+   "arch": "segformer_b2",
+   "fraction": 0.25,
+   "train_images": 812,
+   "params": 27375846,
+   "epochs": 15,
+   "best_epoch": 13,
+   "val_miou": 0.8575846476061831,
+   "test_miou": 0.8501360286201927,
+   "test_mdice": 0.9107463587248567,
+   "test_pixel_acc": 0.9649425997212835,
+   "test_pet_iou": 0.9771200515901065,
+   "test_breed_acc_image": 0.9246313489896232,
+   "train_min": 7.897273485450039,
+   "sec_per_epoch": 31.589093941800154,
+   "peak_mem_gb": 8.27426815032959,
+   "img_per_sec": 76.54855223781968,
+   "gpu": "Tesla T4"
+  },
+  {
+   "name": "segformer_b2_f10",
+   "arch": "segformer_b2",
+   "fraction": 0.1,
+   "train_images": 332,
+   "params": 27375846,
+   "epochs": 15,
+   "best_epoch": 12,
+   "val_miou": 0.8598664381692637,
+   "test_miou": 0.8337549717625674,
+   "test_mdice": 0.9007994739997354,
+   "test_pixel_acc": 0.9602369994303128,
+   "test_pet_iou": 0.9713907071426907,
+   "test_breed_acc_image": 0.9158929546695794,
+   "train_min": 3.2760360799999946,
+   "sec_per_epoch": 13.104144319999978,
+   "peak_mem_gb": 8.27426815032959,
+   "img_per_sec": 75.31246631561831,
+   "gpu": "Tesla T4"
+  }
+ ],
+ "extras": {
+  "unet_r50": {
+   "arch": "unet_r50",
+   "test_images": 1000,
+   "train_size": 384,
+   "resolution": {
+    "256": {
+     "miou": 0.4852045109602413,
+     "pet_iou": 0.9658011852653479,
+     "pixel_acc": 0.8600561633791183
+    },
+    "320": {
+     "miou": 0.46254173329672543,
+     "pet_iou": 0.9724169710371143,
+     "pixel_acc": 0.8529139907836238
+    },
+    "384": {
+     "miou": 0.4337185275676476,
+     "pet_iou": 0.9716741683172914,
+     "pixel_acc": 0.8424698684132637
+    },
+    "512": {
+     "miou": 0.3747313562896309,
+     "pet_iou": 0.9648349061866583,
+     "pixel_acc": 0.8198919900781481
+    },
+    "640": {
+     "miou": 0.32280512350458695,
+     "pet_iou": 0.9538040128100251,
+     "pixel_acc": 0.7987285931396646
+    }
+   },
+   "corruption": {
+    "gaussian_noise": [
+     {
+      "miou": 0.36048640220409667,
+      "pet_iou": 0.9342473197722797,
+      "pixel_acc": 0.81452690868248
+     },
+     {
+      "miou": 0.21790398224317242,
+      "pet_iou": 0.8108929420191349,
+      "pixel_acc": 0.7467136684440866
+     },
+     {
+      "miou": 0.025979952504790627,
+      "pet_iou": 0.05193291019079118,
+      "pixel_acc": 0.651322780300392
+     }
+    ],
+    "gaussian_blur": [
+     {
+      "miou": 0.3858732316702933,
+      "pet_iou": 0.9642653990619351,
+      "pixel_acc": 0.8249988893932104
+     },
+     {
+      "miou": 0.24656963425022688,
+      "pet_iou": 0.9368045150654871,
+      "pixel_acc": 0.7696803045773893
+     },
+     {
+      "miou": 0.12193961903842655,
+      "pet_iou": 0.7714257930890895,
+      "pixel_acc": 0.7079972576799601
+     }
+    ],
+    "jpeg": [
+     {
+      "miou": 0.3120743027694248,
+      "pet_iou": 0.9369468228551393,
+      "pixel_acc": 0.7951179150080534
+     },
+     {
+      "miou": 0.19422614915070086,
+      "pet_iou": 0.8700831909074199,
+      "pixel_acc": 0.7424085090333404
+     },
+     {
+      "miou": 0.03556682121985739,
+      "pet_iou": 0.3910919536452689,
+      "pixel_acc": 0.6511127366461514
+     }
+    ]
+   },
+   "seconds": 297.2251322329994
+  },
+  "segformer_b2": {
+   "arch": "segformer_b2",
+   "test_images": 1000,
+   "train_size": 384,
+   "resolution": {
+    "256": {
+     "miou": 0.8693159719633036,
+     "pet_iou": 0.9746781672300026,
+     "pixel_acc": 0.9666425619753735
+    },
+    "320": {
+     "miou": 0.8823363021327915,
+     "pet_iou": 0.9834114365524075,
+     "pixel_acc": 0.9700850630065169
+    },
+    "384": {
+     "miou": 0.8899567228919287,
+     "pet_iou": 0.9844652625539184,
+     "pixel_acc": 0.9715921493253836
+    },
+    "512": {
+     "miou": 0.8841198213189488,
+     "pet_iou": 0.9809340325532153,
+     "pixel_acc": 0.9698271010581027
+    },
+    "640": {
+     "miou": 0.8661419629747805,
+     "pet_iou": 0.9748407187353997,
+     "pixel_acc": 0.9645058818696594
+    }
+   },
+   "corruption": {
+    "gaussian_noise": [
+     {
+      "miou": 0.8894517655914456,
+      "pet_iou": 0.9781687147350183,
+      "pixel_acc": 0.9712907564239487
+     },
+     {
+      "miou": 0.8753321553748168,
+      "pet_iou": 0.970416473106736,
+      "pixel_acc": 0.966579220995236
+     },
+     {
+      "miou": 0.7954021280480197,
+      "pet_iou": 0.9452174226282198,
+      "pixel_acc": 0.944884398027042
+     }
+    ],
+    "gaussian_blur": [
+     {
+      "miou": 0.8744191131750325,
+      "pet_iou": 0.9808358805954761,
+      "pixel_acc": 0.9683288466986828
+     },
+     {
+      "miou": 0.7780265009068479,
+      "pet_iou": 0.9678101666447523,
+      "pixel_acc": 0.9449518705831315
+     },
+     {
+      "miou": 0.4720038316820916,
+      "pet_iou": 0.9032654222426385,
+      "pixel_acc": 0.8510953153328167
+     }
+    ],
+    "jpeg": [
+     {
+      "miou": 0.8677742114506982,
+      "pet_iou": 0.9716638190823464,
+      "pixel_acc": 0.9662821559376167
+     },
+     {
+      "miou": 0.7946258005036415,
+      "pet_iou": 0.9541933833774371,
+      "pixel_acc": 0.9478908249293032
+     },
+     {
+      "miou": 0.4559630798116079,
+      "pet_iou": 0.8217188321831199,
+      "pixel_acc": 0.8395622154491079
+     }
+    ]
+   },
+   "seconds": 396.30831152599967
+  }
+ },
+ "per_breed": {
+  "segformer_better": 37,
+  "unet_better": 0,
+  "largest_gain_segformer": [
+   [
+    "chihuahua",
+    90.57422342950422
+   ],
+   [
+    "Abyssinian",
+    85.58577557303784
+   ],
+   [
+    "Siamese",
+    84.40182557401128
+   ]
+  ],
+  "largest_gain_unet": [
+   [
+    "newfoundland",
+    -18.705343878275997
+   ],
+   [
+    "german_shorthaired",
+    -21.63806465574244
+   ],
+   [
+    "scottish_terrier",
+    -24.367277417470035
+   ]
+  ],
+  "worst_unet": [
+   [
+    "chihuahua",
+    0.0689187482295117
+   ],
+   [
+    "american_pit_bull_terrier",
+    0.5982077815886059
+   ],
+   [
+    "Siamese",
+    2.0200659570191175
+   ]
+  ],
+  "worst_segformer": [
+   [
+    "american_pit_bull_terrier",
+    58.88579223965868
+   ],
+   [
+    "Ragdoll",
+    62.568900258214434
+   ],
+   [
+    "staffordshire_bull_terrier",
+    65.16970083552444
+   ]
+  ]
+ },
+ "species": {
+  "unet_r50": {
+   "species_confusion_row_norm": [
+    [
+     0.9925890551035862,
+     0.0025800968919609244,
+     0.004830848004452842
+    ],
+    [
+     0.021745867984029468,
+     0.8278866810349659,
+     0.15036745098100468
+    ],
+    [
+     0.01391966131157465,
+     0.04144207990664193,
+     0.9446382587817834
+    ]
+   ],
+   "pet_pixels": {
+    "correct": 0.6023379743876803,
+    "wrong_breed_same_species": 0.3003572496233401,
+    "wrong_species": 0.08057354788815105,
+    "background": 0.01673122810082858
+   }
+  },
+  "segformer_b2": {
+   "species_confusion_row_norm": [
+    [
+     0.9940292667888355,
+     0.0030404583110858717,
+     0.0029302749000786137
+    ],
+    [
+     0.011139016255467945,
+     0.9870499422977805,
+     0.0018110414467515281
+    ],
+    [
+     0.005202274429957921,
+     0.0004374740249797668,
+     0.9943602515450624
+    ]
+   ],
+   "pet_pixels": {
+    "correct": 0.9381870457203132,
+    "wrong_breed_same_species": 0.05354697532010713,
+    "wrong_species": 0.0009309284796706863,
+    "background": 0.007335050479908969
+   }
+  }
+ },
+ "examples": [
+  {
+   "group": "SegFormer tốt hơn",
+   "name": "leonberger_30",
+   "unet_r50": "beagle",
+   "segformer_b2": "leonberger"
+  },
+  {
+   "group": "SegFormer tốt hơn",
+   "name": "Bengal_24",
+   "unet_r50": "havanese",
+   "segformer_b2": "Bengal"
+  },
+  {
+   "group": "U-Net tốt hơn",
+   "name": "american_bulldog_61",
+   "unet_r50": "american_bulldog",
+   "segformer_b2": "staffordshire_bull_terrier"
+  },
+  {
+   "group": "U-Net tốt hơn",
+   "name": "Ragdoll_62",
+   "unet_r50": "Ragdoll",
+   "segformer_b2": "Maine_Coon"
+  },
+  {
+   "group": "Cả hai sai",
+   "name": "Persian_273",
+   "unet_r50": "Persian",
+   "segformer_b2": "Persian"
+  },
+  {
+   "group": "Cả hai sai",
+   "name": "Maine_Coon_268",
+   "unet_r50": "Persian",
+   "segformer_b2": "Maine_Coon"
+  }
+ ]
+}

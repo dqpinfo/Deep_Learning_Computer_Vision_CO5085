@@ -1,0 +1,676 @@
+\documentclass[12pt]{article}
+
+% ============================================================
+% Compile: pdflatex (mặc định của Overleaf) hoặc xelatex đều được.
+% Cần file logo-bk.png đặt cùng thư mục với file .tex.
+% Hình EDA sinh bởi eda.py vào Assignment_2/output/eda/; hình kết quả sinh bởi analyze.py vào output/a2_2/;
+% bảng số sinh bởi analyze.py vào report/generated/.
+% ============================================================
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[utf8]{inputenc}
+  \usepackage[T5]{fontenc}
+  \usepackage{lmodern}
+\else
+  \usepackage{fontspec}
+\fi
+\usepackage[vietnamese]{babel}
+
+\usepackage[a4paper,margin=2.5cm,headheight=2cm,headsep=0.8cm]{geometry}
+\usepackage{graphicx,booktabs,tabularx,xltabular,longtable,array,xcolor,enumitem,amssymb,amsmath,multirow,caption}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{titlesec}
+\usepackage{float}
+\usepackage{hyperref}
+\hypersetup{hidelinks, pdftitle={A2.2 - Pipeline, ket qua va phan tich paper SegFormer - Phan doan 38 lop Oxford-IIIT Pet}}
+\usepackage{parskip}
+
+\graphicspath{{./}{figures/}}
+\captionsetup{labelfont=bf,skip=4pt}
+\setlist{nosep,leftmargin=*}
+\titleformat{\section}{\large\bfseries}{\thesection.}{0.4em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection.}{0.4em}{}
+\titlespacing*{\section}{0pt}{10pt}{4pt}\titlespacing*{\subsection}{0pt}{6pt}{2pt}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
+\renewcommand{\arraystretch}{1.15}
+\setlength{\emergencystretch}{3em}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\st}[1]{\textbf{#1}}
+\newcommand{\todo}[1]{\textcolor{red}{\textbf{[#1]}}}
+% Chèn hình nếu có file, nếu chưa upload thì hiện khung báo thiếu (để vẫn compile được)
+\newcommand{\fig}[2]{\IfFileExists{#2}{\includegraphics[width=#1]{#2}}{%
+  \IfFileExists{../output/eda/#2}{\includegraphics[width=#1]{../output/eda/#2}}{%
+  \IfFileExists{../output/a2_2/#2}{\includegraphics[width=#1]{../output/a2_2/#2}}{%
+  \fbox{\parbox{0.8\linewidth}{\centering\todo{Thiếu hình \detokenize{#2}}}}}}}}
+
+% ---------- Thông tin chung ----------
+\newcommand{\TenTruong}{Đại học Quốc gia Thành phố Hồ Chí Minh\\Trường Đại học Bách khoa\\Khoa Khoa học và Kỹ thuật Máy tính}
+\newcommand{\TenTruongHeader}{Ho Chi Minh University of Technology\\Faculty of Computer Science and Engineering}
+\newcommand{\TenMonHoc}{Học sâu và ứng dụng trong thị giác máy tính}
+\newcommand{\MaMonHoc}{CO5085}
+\newcommand{\TenBaoCao}{Bài tập lớn A2 - Mốc A2.2: Pipeline, kết quả và phân tích paper}
+\newcommand{\TenDeTai}{Phân đoạn ngữ nghĩa 38 lớp trên Oxford-IIIT Pet:\\So sánh U-Net (CNN) và SegFormer (Transformer)}
+\newcommand{\GiangVien}{Thầy Lê Thành Sách\\Thầy Nguyễn Quốc Minh}
+\newcommand{\ThanhVien}{%
+  Đàm Quang Phục - 2570483\\
+  Hồ Bảo An - 2570164
+}
+\newcommand{\DiaDiemNgay}{Thành Phố Hồ Chí Minh, 11/2026}
+\newcommand{\FooterText}{\TenMonHoc\ -- \MaMonHoc}
+
+% ---------- Header / Footer ----------
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\fancyhead[L]{%
+  \parbox[t][\headheight][t]{\headwidth}{%
+    \vspace{0.2cm}
+    \begin{minipage}[b]{1.1cm}
+      \IfFileExists{logo-bk.png}{\includegraphics[width=1.1cm]{logo-bk.png}}{}
+    \end{minipage}%
+    \hspace{0.5em}%
+    \begin{minipage}[b]{8cm}
+      \small \TenTruongHeader
+    \end{minipage}%
+  }%
+}
+\fancyfoot[L]{\small \FooterText}
+\fancyfoot[R]{\small Page \thepage/\pageref{LastPage}}
+
+\fancypagestyle{plain}{%
+  \fancyhf{}
+  \renewcommand{\headrulewidth}{0pt}
+  \renewcommand{\footrulewidth}{0pt}
+}
+
+\begin{document}
+
+% ================= TRANG BÌA =================
+\begin{titlepage}
+\thispagestyle{plain}
+\begin{center}
+{\bfseries \TenTruong \par}
+\vspace{2em}
+
+\IfFileExists{logo-bk.png}{\includegraphics[width=3cm]{logo-bk.png}\\[1em]}{}
+
+\vspace{5em}
+
+{\LARGE \bfseries \TenMonHoc\ (\MaMonHoc) \par}
+\vspace{0.3em}
+\rule{0.85\textwidth}{0.5pt}
+
+\vspace{1em}
+{\Large \bfseries \TenBaoCao \par}
+\vspace{0.6em}
+{\large \TenDeTai \par}
+\vspace{0.3em}
+\rule{0.85\textwidth}{0.5pt}
+
+\vspace{5em}
+
+\noindent\begin{minipage}[t]{3.6cm}
+\raggedleft
+Giảng viên:\\[0.5em]
+\phantom{x}\\[0.5em]
+Thành viên nhóm:
+\end{minipage}%
+\hspace{0.6em}%
+\begin{minipage}[t]{8cm}
+\GiangVien\\[0.5em]
+\ThanhVien
+\end{minipage}
+
+\vspace{2em}
+{\footnotesize Mã nguồn: \url{https://github.com/dqpinfo/Deep_Learning_Computer_Vision_CO5085/tree/main/Assignment_2}\par}
+
+\vfill
+{\bfseries \DiaDiemNgay}
+\end{center}
+\end{titlepage}
+
+% ================= MỤC LỤC =================
+\tableofcontents
+\newpage
+
+\newcommand{\gen}[1]{\IfFileExists{generated/#1}{\input{generated/#1}}{\todo{Thiếu generated/\detokenize{#1}} \\}}
+
+
+% ======================================================================= tóm tắt
+\noindent\fcolorbox{black!35}{black!3}{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule}{
+\textbf{Tóm tắt mốc A2.2 (hạn 16/11/2026).} Nhóm huấn luyện U-Net + ResNet-50 và SegFormer-B2 với cùng công thức
+(của paper SegFormer, 15 epoch, GPU T4) cho bài toán phân đoạn 38 lớp trên Oxford-IIIT Pet, ở 4 lượng dữ liệu train.
+SegFormer-B2 đạt \st{89,2\% mIoU test} so với \st{46,1\%} của U-Net. Hai mô hình khoanh con vật tốt gần như nhau (IoU thú/nền
+98,1\% và 96,9\%); khác biệt nằm ở việc \st{nhận đúng giống} (94,7\% so với 72,4\% ảnh). Chỉ với 10\% ảnh train, SegFormer vẫn
+đạt 83,4\% mIoU, còn U-Net còn 4,8\%. Nhóm kiểm chứng thêm hai tuyên bố của paper: SegFormer giữ mIoU khi đổi độ phân giải test
+(giảm tối đa 2,4 điểm) và bền với nhiễu, nhưng không bền với làm mờ hay nén JPEG nặng; ngược với paper, trên T4 nó chậm hơn và
+tốn bộ nhớ hơn U-Net. Hạn chế chính: U-Net chưa hội tụ với công thức chung. Các bảng số được \code{analyze.py} sinh tự động từ log
+JSON của từng lần chạy (\code{output/runs/}); số trong lời văn lấy từ các bảng đó.}}
+
+% ======================================================================= 1
+\section{Chủ đề và bài toán}
+\subsection{Bài toán}
+\st{Phân đoạn ngữ nghĩa} là gán cho \emph{mỗi điểm ảnh} một nhãn lớp. Khác với phân loại ảnh ở A1 (một nhãn cho cả ảnh),
+mô hình phải trả lời đồng thời ``ở đâu'' và ``là gì''. Nhóm định nghĩa bài toán trên Oxford-IIIT Pet như sau:
+\begin{itemize}
+  \item \st{Đầu vào:} một ảnh RGB chứa một con chó hoặc mèo.
+  \item \st{Đầu ra:} bản đồ nhãn cùng kích thước, mỗi điểm ảnh thuộc một trong 38 lớp: lớp 0 là nền, lớp 1--37 là giống
+        của con vật (12 giống mèo, 25 giống chó).
+  \item \st{Nhãn đúng:} ghép mặt nạ trimap chính thức (thú / nền / viền) với nhãn giống của ảnh. Điểm ảnh thuộc thú nhận
+        mã giống, điểm nền nhận 0, vùng \emph{viền} (dải mờ quanh biên con vật mà người gán nhãn không chắc chắn) nhận
+        giá trị 255 và \st{bị bỏ qua} khi tính loss và metric.
+\end{itemize}
+
+\subsection{Câu hỏi nghiên cứu}
+\begin{enumerate}
+  \item \st{CNN hay Transformer?} Với cùng nguồn pretrained (ImageNet-1k) và số tham số tương đương, U-Net + ResNet-50 hay
+        SegFormer-B2 cho mIoU cao hơn trên bài toán 38 lớp, và với chi phí (thời gian, bộ nhớ, tốc độ) ra sao?
+  \item \st{Lỗi đến từ đâu?} Phần mIoU bị mất là do vẽ sai biên hay do nhận sai giống? Mô hình nhầm giữa các giống cùng
+        loài nhiều hơn nhầm chó $\leftrightarrow$ mèo không?
+  \item \st{Mô hình nào cần ít nhãn hơn?} Khi chỉ còn 50\%, 25\%, 10\% ảnh train, khoảng cách giữa hai mô hình thay đổi thế nào?
+  \item \st{Các tuyên bố của paper có đứng vững trên tập của nhóm không?} Ví dụ: bộ giải mã toàn MLP gọn nhẹ mà vẫn đủ tốt,
+        encoder phân cấp không cần positional encoding (Mục~\ref{sec:paper}).
+\end{enumerate}
+
+
+% ======================================================================= 2
+\section{Tập dữ liệu và EDA}
+\subsection{Nguồn, license và cách tải}
+Oxford-IIIT Pet được nhóm Visual Geometry Group (Đại học Oxford) và IIIT Hyderabad công bố cùng bài báo CVPR
+2012~\cite{parkhi2012}, tại \url{https://www.robots.ox.ac.uk/~vgg/data/pets/}. Tác giả cung cấp dữ liệu
+cho mục đích nghiên cứu; việc dùng ảnh phải tôn trọng điều khoản của các trang web gốc nơi ảnh được thu thập (theo file
+\code{README} đi kèm bộ nhãn). Nhóm chỉ dùng cho học tập, không phân phối lại ảnh và trích dẫn bài báo gốc.
+
+Mỗi ảnh có nhãn giống, nhãn loài (chó/mèo), hộp bao phần đầu và một mặt nạ \st{trimap} gán mỗi điểm ảnh là thú (1), nền (2)
+hoặc viền chưa rõ (3). Hai danh sách chính thức chia dữ liệu thành \code{trainval} (3.680 ảnh) và \code{test} (3.669 ảnh).
+
+Máy chủ của Oxford không truy cập được từ mạng của nhóm, nên \code{data.py} thử máy chủ gốc trước rồi tải hai file
+\code{images.tar.gz} và \code{annotations.tar.gz} từ một bản sao trên Hugging Face. Hai file được \st{kiểm tra MD5} trùng
+với giá trị thư viện torchvision dùng cho bản gốc, nên dữ liệu giống hệt bản chính thức. Thư mục \code{data/} không được
+commit lên GitHub.
+
+\subsection{Cách chia split}
+\begin{table}[H]
+\centering
+\caption{Ba tập dữ liệu dùng chung cho mọi thí nghiệm (\code{splits/pet\_split.json}, \code{output/eda/summary.json}).}\label{tab:split}
+\begin{tabularx}{\linewidth}{@{}lrrlL@{}}
+\toprule
+Split & Số ảnh & Mỗi giống & Nguồn & Vai trò \\\midrule
+Train      & 3.303 & 80--90 & \code{trainval} chính thức & Cập nhật trọng số \\
+Validation &   370 & 10     & \code{trainval} chính thức & Chọn checkpoint tốt nhất, theo dõi quá trình học \\
+Test       & 3.662 & 88--100 & \code{test} chính thức    & Chỉ dùng một lần ở cuối mỗi thí nghiệm \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Validation được lấy \st{phân tầng}: mỗi giống chọn ngẫu nhiên 10 ảnh từ danh sách \code{trainval} với seed 42
+(\code{make\_split} trong \code{data.py}). Tên ảnh của cả ba split được lưu cố định trong \code{splits/pet\_split.json}.
+Tập test chính thức giữ nguyên và chỉ dùng một lần ở cuối mỗi thí nghiệm. Thí nghiệm ít dữ liệu ở A2.2 lấy tập con của
+train theo từng giống (\code{subsample}); tập nhỏ nằm trọn trong tập lớn hơn (10\% $\subset$ 25\% $\subset$ 50\%), validation
+và test không đổi.
+
+\subsection{Khám phá dữ liệu (EDA)}
+Script \code{eda.py} quét toàn bộ 7.349 ảnh có trong hai danh sách chính thức (khoảng 20 giây trên Mac M1); kết quả lưu ở \code{output/eda/}.
+
+\begin{figure}[H]
+\centering
+\fig{\linewidth}{breed_counts.png}
+\caption{Số ảnh mỗi giống theo split. Tên in đậm là giống mèo.}\label{fig:counts}
+\end{figure}
+
+\textbf{Nhận xét về số lượng ảnh.}
+\begin{itemize}
+  \item Tập có 7.349 ảnh của \st{37 giống: 12 giống mèo và 25 giống chó}, mỗi giống khoảng 200 ảnh, chia gần đều giữa
+        trainval và test (Hình~\ref{fig:counts}). Vì số giống chó gấp đôi giống mèo, số ảnh chó cũng gấp đôi
+        (train: 1.065 mèo, 2.238 chó).
+  \item Dữ liệu \st{cân bằng theo giống}: mỗi giống có 80--90 ảnh train, 10 ảnh validation, 88--100 ảnh test. Ít nhất là
+        Egyptian Mau và Bombay, do tập gốc có ít ảnh hơn và do bước loại ảnh lỗi bên dưới.
+  \item \st{Phát hiện lỗi nhãn:} khi quét trimap, nhóm thấy \st{14 ảnh} (7 trong trainval, 7 trong test) có trimap gán
+        \emph{toàn bộ} ảnh là nền, dù ảnh rõ ràng có con vật (ví dụ \code{saint\_bernard\_108}, \code{Egyptian\_Mau\_162},
+        \code{Persian\_259}). Giữ lại các ảnh này sẽ dạy mô hình rằng con vật là nền, và trừ điểm mô hình khi nó dự đoán đúng
+        trên test. Nhóm \st{loại 14 ảnh này khỏi mọi split} và lưu danh sách trong \code{splits/pet\_split.json}
+        (\code{excluded\_empty\_trimap}). Vì vậy split có 3.303 / 370 / 3.662 ảnh thay vì 3.310 / 370 / 3.669.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\fig{0.95\linewidth}{samples_with_masks.png}
+\caption{Ảnh mẫu (6 mèo, 6 chó trong tập train) và mặt nạ 38 lớp tương ứng.}\label{fig:samples}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\fig{\linewidth}{image_sizes.png}
+\caption{Kích thước và tỉ lệ khung hình của ảnh gốc.}\label{fig:sizes}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\fig{\linewidth}{pixel_fractions.png}
+\caption{Phân bố tỉ lệ điểm ảnh thú / nền / viền trong mỗi ảnh (đường đứt nét: trung vị).}\label{fig:fractions}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\fig{\linewidth}{class_pixel_share.png}
+\caption{Tỉ lệ điểm ảnh có nhãn của mỗi lớp trên tập train (thang log), các giống xếp giảm dần.}\label{fig:share}
+\end{figure}
+
+\textbf{Nhận xét về ảnh và mặt nạ.}
+\begin{itemize}
+  \item \st{Kích thước ảnh không đồng nhất} (Hình~\ref{fig:sizes}): chiều rộng từ 114 đến 3.264 điểm ảnh, chiều cao từ 103
+        đến 2.606, trung vị $500\times375$; khoảng 98\% ảnh có cạnh dài không quá 500. Tỉ lệ khung hình đa dạng, cả ngang lẫn dọc.
+        Vì vậy cần đưa về một kích thước chung ($384\times384$) để ghép batch. Mọi trimap đều cùng kích thước với ảnh.
+  \item 7.346 ảnh là RGB, 3 ảnh có kênh alpha (RGBA); \code{data.py} luôn chuyển về RGB.
+  \item \st{Con vật thường chiếm phần nhỏ của ảnh} (Hình~\ref{fig:fractions}): trung vị 27\% điểm ảnh là thú, 60\% là nền và
+        11\% là viền. Dải viền khá dày (Hình~\ref{fig:samples}) và bị bỏ qua, nên metric đo chất lượng ở phần thân con vật
+        và nền rõ ràng, không đo độ sắc nét ở sát biên. Đây là giới hạn của nhãn gốc mà nhóm sẽ nêu khi thảo luận.
+  \item \st{Mất cân bằng mạnh ở mức điểm ảnh} (Hình~\ref{fig:share}): trên tập train, nền chiếm 66\% điểm ảnh có nhãn, mỗi
+        giống chỉ 0,4--1,5\%. Mô hình chỉ đoán ``nền'' ở mọi nơi đã đạt pixel accuracy 66\% nhưng mIoU chỉ khoảng
+        $66/38\approx1,7\%$. Đây là lý do nhóm chọn mIoU (trung bình đều các lớp) làm metric chính thay vì pixel accuracy.
+  \item Trung bình pixel trên 500 ảnh train ngẫu nhiên (R, G, B) là (0,465; 0,430; 0,382), độ lệch chuẩn (0,265; 0,260; 0,266),
+        gần thống kê ImageNet, nên dùng chuẩn hoá ImageNet là hợp lý.
+  \item Trong một ảnh chỉ có một con vật và một giống, nên mô hình cần nhận ra giống từ toàn cảnh con vật rồi tô nhất quán
+        cả vùng. Một lỗi điển hình có thể đoán trước là một con vật bị tô bằng hai giống khác nhau ở hai phần cơ thể.
+\end{itemize}
+
+% ======================================================================= 3
+\section{DataLoader và augmentation}\label{sec:loader}
+\begin{table}[H]
+\centering
+\caption{Pipeline tiền xử lý, giống hệt nhau cho cả hai mô hình (\code{data.py}, torchvision \code{transforms.v2}).}\label{tab:pipeline}
+\begin{tabularx}{\linewidth}{@{}P{3.3cm}LL@{}}
+\toprule
+Bước & Train & Validation / Test \\\midrule
+Đọc dữ liệu & \multicolumn{2}{P{11.5cm}}{Ảnh JPEG chuyển sang RGB; trimap PNG chuyển thành mặt nạ 38 lớp (nền 0, giống 1--37, viền 255)} \\
+Hình học (ảnh và mặt nạ cùng lúc) & \code{RandomResizedCrop(384, scale=(0.5, 1))} + \code{RandomHorizontalFlip} & \code{Resize} thẳng về $384\times384$ \\
+Màu (chỉ ảnh) & \code{ColorJitter(0.2, 0.2, 0.2)} & Không \\
+Chuẩn hoá & \multicolumn{2}{l}{Về $[0,1]$, rồi \code{Normalize} theo mean/std của ImageNet} \\
+DataLoader & batch 16, \code{shuffle}, \code{drop\_last} & batch 16, không shuffle \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\fig{\linewidth}{augmentation_examples.png}
+\caption{Cùng một ảnh: bản dùng cho validation/test (trái) và bốn bản augmentation cho train, kèm mặt nạ đi theo.}\label{fig:aug}
+\end{figure}
+
+\textbf{Lý do thiết kế.}
+\begin{itemize}
+  \item \st{Biến đổi hình học áp dụng đồng thời cho ảnh và mặt nạ}, và mặt nạ luôn được nội suy theo điểm gần nhất
+        (nearest) để không sinh ra mã lớp không tồn tại ở biên. \code{transforms.v2} của torchvision xử lý việc này khi mặt
+        nạ được bọc trong kiểu \code{tv\_tensors.Mask}; Hình~\ref{fig:aug} xác nhận mặt nạ khớp ảnh sau augmentation.
+  \item \st{Kích thước $384\times384$:} ảnh gốc có cạnh khoảng 300--500 điểm ảnh (Mục EDA), nên 384 giữ được phần lớn chi
+        tiết mà vẫn vừa bộ nhớ GPU T4 với batch 16. Cả hai mô hình nhận đúng cùng đầu vào; metric tính ở độ phân giải này.
+  \item \st{Không lật dọc, không xoay mạnh:} ảnh thú cưng hầu như luôn đứng đúng chiều, nên các phép này chỉ tạo ảnh phi thực tế.
+  \item \st{Chuẩn hoá ImageNet:} cả hai encoder được huấn luyện trước trên ImageNet-1k với cùng chuẩn hoá này.
+\end{itemize}
+
+% ======================================================================= 4
+\input{sections/paper.tex}
+
+% ======================================================================= 5
+\section{Pipeline, huấn luyện và cách so sánh}\label{sec:pipeline}
+\subsection{Hai mô hình}
+\begin{table}[H]
+\centering
+\caption{Hai mô hình so sánh; số tham số đo bằng \code{smoke\_test.py} với đầu ra 38 lớp (\code{output/protocol\_table.json}).}\label{tab:models}
+\begin{tabularx}{\linewidth}{@{}P{2.4cm}P{4.4cm}R{2.3cm}L@{}}
+\toprule
+Họ & Mô hình & Tham số & Đặc điểm \\\midrule
+CNN & U-Net + ResNet-50 \newline \code{resnet50.a1\_in1k} (timm) & 32.521.606 & Encoder 23.508.032 + bộ giải mã 9.013.574; giải mã dần tới độ phân giải gốc, có skip connection \\
+Transformer & SegFormer-B2 \newline \code{nvidia/mit-b2} (Hugging Face) & 27.375.846 & Encoder 24.196.288 + bộ giải mã MLP 3.179.558; dự đoán ở 1/4 độ phân giải \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{itemize}
+  \item \st{U-Net + ResNet-50}~\cite{ronneberger2015,he2016}: encoder ResNet-50 (\code{timm}~\cite{timm}, trọng số
+        \code{resnet50.a1\_in1k}) cho 5 bản đồ đặc trưng ở 1/2 đến 1/32 độ phân giải. Bộ giải mã do nhóm tự viết
+        (\code{models.py}): 5 bước, mỗi bước phóng gấp đôi, ghép với đặc trưng encoder cùng tỉ lệ (skip connection) và qua hai
+        lớp tích chập $3\times3$ + BatchNorm + ReLU, cuối cùng là lớp $1\times1$ ra 38 kênh ở độ phân giải gốc.
+  \item \st{SegFormer-B2}~\cite{xie2021}: encoder MiT-B2 pretrained ImageNet-1k (\code{nvidia/mit-b2}) và bộ giải mã toàn MLP,
+        lấy từ thư viện Hugging Face Transformers~\cite{wolf2020}. Đầu ra ở 1/4 độ phân giải được phóng bilinear về kích
+        thước ảnh trước khi tính loss.
+\end{itemize}
+Hai mô hình có \st{cùng nguồn pretrained} (chỉ ImageNet-1k) và \st{số tham số cùng bậc}, để khác biệt kết quả đến từ kiến trúc
+chứ không phải từ dữ liệu pretrain hay kích thước. Nhóm cố ý không dùng các trọng số đã được huấn luyện cho phân đoạn trên
+COCO hay Pascal VOC, vì các tập này có sẵn lớp chó và mèo.
+
+\subsection{Metric}\label{sec:metrics}
+Mọi metric được tính trên \st{toàn bộ split} từ một ma trận nhầm lẫn $38\times38$ cộng dồn qua các ảnh (\code{metrics.py}),
+bỏ qua điểm ảnh viền. Gọi $TP_c$, $FP_c$, $FN_c$ là số điểm ảnh đúng, dự đoán thừa và bỏ sót của lớp $c$:
+\begin{align*}
+\mathrm{IoU}_c &= \frac{TP_c}{TP_c + FP_c + FN_c}, &
+\mathrm{mIoU} &= \frac{1}{38}\sum_{c=0}^{37}\mathrm{IoU}_c, &
+\mathrm{Dice}_c &= \frac{2\,TP_c}{2\,TP_c + FP_c + FN_c}.
+\end{align*}
+\begin{itemize}
+  \item \st{mIoU 38 lớp (metric chính):} mỗi lớp có trọng số như nhau, nên giống hiếm hay khó cũng ảnh hưởng ngang lớp nền.
+        Đây là metric chuẩn của bài toán phân đoạn ngữ nghĩa và cũng là metric chính của paper SegFormer.
+  \item \st{Mean Dice:} trung bình $\mathrm{Dice}_c$, metric thông dụng thứ hai mà đề bài nêu.
+  \item \st{Pixel accuracy:} tỉ lệ điểm ảnh đúng. Chỉ báo cáo để tham khảo, vì nền chiếm phần lớn điểm ảnh (Hình~\ref{fig:share})
+        nên metric này dễ cao dù nhận sai giống.
+  \item \st{IoU thú/nền:} gộp 37 giống thành một lớp ``thú'' rồi tính IoU. So với mIoU, nó tách riêng chất lượng khoanh hình
+        dạng khỏi chất lượng nhận giống.
+  \item \st{Chi phí:} số tham số, thời gian huấn luyện, bộ nhớ GPU đỉnh và tốc độ suy luận (ảnh/giây) trên cùng GPU T4.
+  \item \st{Độ chính xác giống theo ảnh:} mỗi ảnh test lấy giống được dự đoán nhiều nhất trong các điểm ảnh mô hình cho là
+        thú, rồi so với giống thật. Metric này cho biết mô hình có ``hiểu'' đúng con vật không, tách khỏi chất lượng biên.
+\end{itemize}
+
+\subsection{Huấn luyện}\label{sec:train}
+\begin{table}[H]
+\centering
+\caption{Siêu tham số, giống nhau cho cả hai mô hình và mọi lượng dữ liệu (\code{config.TRAIN\_HPARAMS}, \code{train.py}).}\label{tab:hparams}
+\begin{tabularx}{\linewidth}{@{}P{3.6cm}L@{}}
+\toprule
+Thiết lập & Giá trị \\\midrule
+Loss & Cross-entropy từng điểm ảnh, bỏ qua viền (\code{ignore\_index=255}), giống paper (không OHEM, không loss phụ) \\
+Optimizer & AdamW, weight decay 0,01 \\
+Learning rate & Encoder $6\times10^{-5}$ (giá trị của paper); bộ giải mã và lớp ra $6\times10^{-4}$ \\
+Lịch learning rate & Warmup tuyến tính 1 epoch, sau đó ``poly'' luỹ thừa 1,0 giảm về 0 (giống paper) \\
+Số epoch / batch / seed & 15 / 16 / 42; với 100\% dữ liệu là 206 bước mỗi epoch, khoảng 3.100 bước \\
+Độ chính xác số & Mixed precision (fp16) trên một GPU Tesla T4 (Google Colab) \\
+Chọn checkpoint & Epoch có mIoU validation cao nhất; sau đó đánh giá trên test đúng một lần \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Kế hoạch ở A2.1 là 40 epoch. Khi đo trên T4, một epoch U-Net với 100\% dữ liệu mất khoảng 84 giây, nên 8 lần chạy
+40 epoch cần hơn 4 giờ GPU, vượt hạn mức Colab miễn phí còn lại. Nhóm giảm xuống \st{15 epoch cho mọi cấu hình}, giữ nguyên
+các thiết lập khác để so sánh vẫn công bằng. Lịch poly co theo số epoch nên learning rate vẫn giảm về 0 ở cuối.
+
+Vòng lặp huấn luyện tự viết bằng PyTorch (\code{train.py}, dựa trên khung của A1): checkpoint sau mỗi epoch để chạy tiếp
+khi Colab bị ngắt, log JSON theo epoch, đo thời gian, bộ nhớ đỉnh và tốc độ suy luận (20 batch sau khi khởi động).
+\code{run\_all.py} chạy lần lượt cả 8 cấu hình và bỏ qua cấu hình đã xong; \code{colab\_a2\_2.ipynb} gói toàn bộ quy trình.
+
+\subsection{Ma trận thí nghiệm}
+\begin{table}[H]
+\centering
+\caption{8 lần huấn luyện và đánh giá thêm (\code{config.EXPERIMENTS}, \code{eval\_extra.py}).}\label{tab:matrix}
+\begin{tabularx}{\linewidth}{@{}P{3.6cm}P{3.2cm}L@{}}
+\toprule
+Cấu hình & Ảnh train & Mục đích \\\midrule
+\code{\{unet\_r50, segformer\_b2\}\_f100} & 3.303 (100\%) & So sánh chính CNN và Transformer \\
+\code{\_f50}, \code{\_f25}, \code{\_f10} & 1.650 / 812 / 332 & Hiệu quả dữ liệu: mô hình nào giữ mIoU tốt hơn khi ít nhãn. Tập nhỏ nằm trong tập lớn, lấy đều theo giống \\
+Đánh giá thêm (không huấn luyện lại) & mô hình 100\% & (1) Test ở $256$--$640$ điểm ảnh (train ở 384): kiểm chứng tuyên bố Mix-FFN không cần positional encoding;
+(2) ảnh test bị nhiễu Gauss, làm mờ, nén JPEG, mỗi loại 3 mức: kiểm chứng tuyên bố về độ bền (Bảng 5 của paper) ở cỡ B2 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ======================================================================= 6
+\section{Kết quả}\label{sec:results}
+\subsection{So sánh chính (100\% dữ liệu train)}
+\begin{table}[H]
+\centering
+\caption{Kết quả trên tập test 3.662 ảnh (mIoU validation để chọn checkpoint). Đơn vị \%.}\label{tab:main}
+\begin{tabularx}{\linewidth}{@{}LrCCCCCC@{}}
+\toprule
+Mô hình & Tham số & mIoU val & mIoU test & mDice & Pixel acc. & IoU thú/nền & Giống đúng/ảnh \\\midrule
+% from generated/main_table.tex (analyze.py)
+U-Net + ResNet-50 & 32,5M & 48,5 & 46,1 & 58,3 & 85,9 & 96,9 & 72,4 \\
+SegFormer-B2 & 27,4M & 89,5 & 89,2 & 93,9 & 97,5 & 98,1 & 94,7 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Chi phí trên một GPU Tesla T4 (fp16).}\label{tab:cost}
+\begin{tabularx}{\linewidth}{@{}LCCCCC@{}}
+\toprule
+Mô hình & Epoch tốt nhất & Giây/epoch & Tổng (phút) & Bộ nhớ đỉnh (GB) & Suy luận (ảnh/s) \\\midrule
+% from generated/cost_table.tex (analyze.py)
+U-Net + ResNet-50 & 15/15 & 93 & 23 & 4,6 & 134 \\
+SegFormer-B2 & 11/15 & 128 & 32 & 8,3 & 77 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\fig{\linewidth}{learning_curves.png}
+\caption{Loss và mIoU validation theo epoch (100\% dữ liệu train).}\label{fig:curves}
+\end{figure}
+
+\subsection{Lỗi đến từ đâu}
+\begin{figure}[H]
+\centering
+\fig{\linewidth}{species_confusion.png}
+\caption{Ma trận nhầm lẫn gộp nền / mèo / chó trên tập test (chuẩn hoá theo hàng).}\label{fig:species}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\fig{\linewidth}{per_breed_iou.png}
+\caption{IoU từng giống trên tập test.}\label{fig:breed}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\fig{\linewidth}{examples.png}
+\caption{Ảnh test điển hình và bản đồ lỗi của hai mô hình.}\label{fig:examples}
+\end{figure}
+
+\subsection{Hiệu quả dữ liệu}
+\begin{table}[H]
+\centering
+\caption{Kết quả test khi giảm dữ liệu train (validation và test giữ nguyên). Đơn vị \%.}\label{tab:fraction}
+\begin{tabularx}{\linewidth}{@{}LCCCCCC@{}}
+\toprule
+& \multicolumn{3}{c}{U-Net + ResNet-50} & \multicolumn{3}{c}{SegFormer-B2} \\\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+Ảnh train & mIoU & IoU thú & Giống/ảnh & mIoU & IoU thú & Giống/ảnh \\\midrule
+% from generated/fraction_table.tex (analyze.py)
+100\% (3.303) & 46,1 & 96,9 & 72,4 & 89,2 & 98,1 & 94,7 \\
+50\% (1.650) & 25,5 & 96,6 & 48,4 & 88,2 & 98,1 & 94,0 \\
+25\% (812) & 12,4 & 94,7 & 28,2 & 85,0 & 97,7 & 92,5 \\
+10\% (332) & 4,8 & 90,7 & 10,6 & 83,4 & 97,1 & 91,6 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\fig{\linewidth}{data_efficiency.png}
+\caption{Kết quả test theo số ảnh train.}\label{fig:efficiency}
+\end{figure}
+
+\subsection{Kiểm chứng tuyên bố của paper: độ phân giải và ảnh hỏng}\label{sec:robust}
+\begin{table}[H]
+\centering
+\caption{mIoU test (\%) khi đổi kích thước ảnh test; cả hai mô hình huấn luyện ở $384\times384$.}\label{tab:resolution}
+\begin{tabularx}{\linewidth}{@{}LCCCCC@{}}
+\toprule
+Mô hình & 256 & 320 & 384 & 512 & 640 \\\midrule
+% from generated/resolution_table.tex (analyze.py)
+U-Net + ResNet-50 & 48,5 & 46,3 & 43,4 & 37,5 & 32,3 \\
+SegFormer-B2 & 86,9 & 88,2 & 89,0 & 88,4 & 86,6 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\centering\small
+\caption{mIoU test (\%) trên ảnh bị hỏng, ba mức độ mỗi loại.}\label{tab:corruption}
+\begin{tabularx}{\linewidth}{@{}LCCCCCCCCCC@{}}
+\toprule
+& & \multicolumn{3}{c}{Nhiễu Gauss $\sigma$} & \multicolumn{3}{c}{Làm mờ Gauss $\sigma$} & \multicolumn{3}{c}{JPEG chất lượng} \\
+\cmidrule(lr){3-5}\cmidrule(lr){6-8}\cmidrule(lr){9-11}
+Mô hình & Gốc & 0,04 & 0,08 & 0,16 & 1 & 2 & 4 & 30 & 15 & 5 \\\midrule
+% from generated/corruption_table.tex (analyze.py)
+U-Net + ResNet-50 & 43,4 & 36,0 & 21,8 & 2,6 & 38,6 & 24,7 & 12,2 & 31,2 & 19,4 & 3,6 \\
+SegFormer-B2 & 89,0 & 88,9 & 87,5 & 79,5 & 87,4 & 77,8 & 47,2 & 86,8 & 79,5 & 45,6 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\fig{\linewidth}{robustness.png}
+\caption{mIoU theo độ phân giải test và mức độ hỏng ảnh.}\label{fig:robust}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\fig{\linewidth}{corruption_examples.png}
+\caption{Một ảnh test dưới các loại và mức độ hỏng đã dùng.}\label{fig:corrupt-ex}
+\end{figure}
+
+% ======================================================================= 7
+\section{Thảo luận và đối chiếu với paper}\label{sec:discussion}
+\subsection{CNN hay Transformer?}
+Với cùng dữ liệu, cùng công thức huấn luyện và 15 epoch, SegFormer-B2 đạt mIoU test 89,2\% còn U-Net + ResNet-50 chỉ
+46,1\% (Bảng~\ref{tab:main}). Khoảng cách gần như nằm hết ở việc \st{nhận giống}, không phải ở việc khoanh con vật:
+\begin{itemize}
+  \item IoU thú/nền của hai mô hình gần nhau (98,1\% và 97,0\%). Cả hai đều tách con vật khỏi nền tốt; U-Net chỉ kém
+        khoảng 1 điểm.
+  \item Độ chính xác giống theo ảnh chênh lớn: 94,7\% so với 72,4\%. Khi U-Net đoán sai giống, cả vùng con vật bị tính
+        sai lớp, nên IoU của lớp đúng và của lớp bị đoán nhầm cùng giảm. Đó là lý do mIoU chênh hơn 40 điểm dù hình dạng
+        gần như đúng.
+\end{itemize}
+Đường học (Hình~\ref{fig:curves}) cho thấy hai mô hình học theo hai nhịp rất khác nhau. SegFormer đạt mIoU validation
+80\% ngay sau epoch 1 và gần bão hoà từ epoch 3. U-Net chỉ đạt 3,5\% sau epoch 1, rồi tăng chậm và đều tới 48,5\% ở
+epoch 15, khi đường cong vẫn còn dốc. Vì vậy \st{kết quả của U-Net là kết quả chưa hội tụ}: với nhiều epoch hơn hoặc
+learning rate lớn hơn cho encoder ResNet, khoảng cách chắc chắn sẽ hẹp lại. Nhóm giải thích sự chênh lệch như sau:
+\begin{itemize}
+  \item \st{Công thức huấn luyện là của SegFormer.} Learning rate $6\times10^{-5}$ cho encoder vốn được paper chọn cho MiT.
+        Với ResNet-50 (có BatchNorm, quen với learning rate lớn hơn nhiều), mức này làm encoder gần như đứng yên, nên
+        U-Net phải dựa vào bộ giải mã 9 triệu tham số học từ đầu. Đây đúng là hạn chế nhóm đã nêu ở paper
+        (Mục~\ref{sec:paper}): so sánh dùng cùng một công thức thì công thức đó có thể thiên vị một kiến trúc.
+  \item \st{Nhận giống cần ngữ cảnh toàn cục.} Phân biệt 37 giống dựa vào toàn bộ con vật (mặt, lông, dáng). Self-attention
+        của MiT nhìn toàn ảnh ngay từ tầng đầu, còn CNN chỉ có ngữ cảnh rộng ở tầng sâu. Trong U-Net, quyết định ở mỗi điểm
+        ảnh còn chịu ảnh hưởng mạnh của skip connection từ tầng nông, nên một con vật có thể bị tô bằng nhiều giống
+        (Hình~\ref{fig:examples}).
+  \item \st{Bộ giải mã nhẹ vẫn đủ.} Bộ giải mã MLP của SegFormer chỉ 3,2 triệu tham số và dự đoán ở 1/4 độ phân giải, nhưng
+        IoU thú/nền vẫn cao hơn U-Net. Trên tập này, nhãn viền bị bỏ qua nên lợi thế ``biên sắc nét'' của U-Net không được
+        tính (Mục EDA). Điều này khớp với tuyên bố trung tâm của paper: encoder tốt thì bộ giải mã có thể rất đơn giản.
+\end{itemize}
+
+\subsection{Chi phí}
+SegFormer-B2 ít tham số hơn (27,4 triệu so với 32,5 triệu) nhưng \st{đắt hơn khi chạy} trên T4 (Bảng~\ref{tab:cost}): mỗi
+epoch 128 giây so với 93 giây, bộ nhớ đỉnh 8,3 GB so với 4,6 GB, suy luận 77 so với 134 ảnh/giây. Self-attention ở độ phân
+giải 1/4 (dù đã rút gọn key/value) và đặc trưng 768 kênh ở 1/4 độ phân giải của bộ giải mã tốn bộ nhớ hơn tích chập.
+Khi đánh giá ở $640\times640$, SegFormer với batch 16 hết bộ nhớ T4 ở lớp trộn của bộ giải mã (cần thêm 2,3 GB), nhóm phải giảm
+batch xuống 4. Số tham số nhỏ của paper vì vậy không đồng nghĩa với rẻ hơn trên GPU phổ thông. Tuy vậy, tính theo
+\st{chất lượng trên cùng thời gian}, SegFormer vẫn lợi hơn hẳn: sau 1 epoch (khoảng 2 phút) nó đã vượt xa U-Net sau 15 epoch.
+
+\subsection{Lỗi đến từ đâu}
+Ma trận gộp nền / mèo / chó (Hình~\ref{fig:species}) và phân tích điểm ảnh thú trên test cho thấy:
+\begin{itemize}
+  \item U-Net gán đúng giống cho 60,2\% điểm ảnh thú; 30,0\% bị gán \st{sai giống cùng loài}, 8,1\% bị gán \st{sai loài}
+        (chủ yếu mèo bị đoán là chó: 15,0\% điểm ảnh mèo), chỉ 1,7\% bị đoán là nền. SegFormer gán đúng 93,8\%; sai
+        giống cùng loài 5,4\%, sai loài chỉ 0,1\%, đoán là nền 0,7\%.
+  \item Vậy lỗi của cả hai mô hình chủ yếu là \st{nhầm giữa các giống cùng loài}, không phải nhầm chó với mèo hay bỏ sót
+        con vật, đúng như dự đoán ở A2.1. U-Net còn có lỗi đặc trưng là tô một con vật bằng nhiều giống (ảnh Bengal\_24 ở
+        Hình~\ref{fig:examples}), điều gần như không xảy ra với SegFormer.
+  \item Theo từng giống (Hình~\ref{fig:breed}), SegFormer tốt hơn U-Net ở \st{cả 37 giống}; chênh lệch nhỏ nhất vẫn là 18,7 điểm
+        (newfoundland). Giống khó nhất với SegFormer là american pit bull terrier (IoU 58,9\%), Ragdoll (62,6\%) và
+        staffordshire bull terrier (65,2\%): pit bull và staffordshire gần như giống hệt nhau, còn Ragdoll dễ lẫn với các
+        giống mèo lông dài khác (Ragdoll\_62 bị đoán là Maine Coon). Ảnh american\_bulldog\_61 và Ragdoll\_62 là hai trường hợp U-Net đúng còn SegFormer nhầm sang
+        giống họ hàng.
+  \item \st{Nhãn sai trong tập test.} Nhóm chọn nhóm ảnh ``cả hai cùng sai'' để xem và thấy hai ảnh (Persian\_273,
+        Maine\_Coon\_268) có trimap bị \st{đảo ngược}: con vật được gán là nền và nền được gán là thú. Cả hai mô hình đều
+        khoanh đúng con vật nhưng bị chấm sai toàn bộ. Đây là loại lỗi nhãn thứ hai, khác với 14 ảnh ``toàn nền'' đã loại ở
+        A2.1; nhóm không loại các ảnh này khỏi test sau khi đã thấy kết quả để tránh chỉnh tập test theo mô hình, nhưng
+        ghi nhận rằng mIoU báo cáo hơi thấp hơn giá trị thật.
+\end{itemize}
+
+% ======================================================================= 8
+\subsection{Mô hình nào cần ít nhãn hơn?}
+Bảng~\ref{tab:fraction} và Hình~\ref{fig:efficiency} trả lời rõ: \st{SegFormer gần như không phụ thuộc vào lượng nhãn} trong
+khoảng thử, còn U-Net sụp nhanh. Khi giảm từ 3.303 xuống 332 ảnh train (10\%), mIoU của SegFormer chỉ giảm từ 89,2\% xuống
+83,4\% và độ chính xác giống theo ảnh từ 94,7\% xuống 91,6\%; với chỉ 9 ảnh mỗi giống, nó vẫn tốt hơn U-Net dùng toàn bộ dữ liệu.
+U-Net giảm từ 46,1\% xuống 4,8\% mIoU (giống đúng theo ảnh 10,6\%, gần mức đoán bừa trong 37 giống là 2,7\%). Trong khi đó IoU
+thú/nền của U-Net vẫn giữ trên 90\% ở mọi mức: tách con vật khỏi nền là việc dễ, cần ít nhãn; còn nhận giống mới là phần cần
+dữ liệu, và ở đây encoder MiT pretrained cung cấp đặc trưng ``sẵn sàng'' cho phân biệt giống tốt hơn nhiều. Lưu ý mọi cấu hình
+đều chạy 15 epoch, nên cấu hình ít ảnh có ít bước cập nhật hơn; với U-Net (vốn chưa hội tụ), điều này làm khoảng cách lớn thêm.
+
+\subsection{Kiểm chứng hai tuyên bố của paper}
+Hai thí nghiệm ở Mục~\ref{sec:robust} dùng 1.000 ảnh test (cứ 3 ảnh lấy 1 theo thứ tự danh sách test, \code{--subset 1000}) để kịp thời gian;
+ở $384\times384$ mIoU trên tập con này là 89,0\% (SegFormer) và 43,4\% (U-Net), gần với kết quả trên toàn tập test.
+
+\textbf{Đổi độ phân giải test (Bảng~\ref{tab:resolution}).} Paper cho rằng Mix-FFN thay cho positional encoding giúp mô hình
+chịu được độ phân giải test khác lúc train. Trên tập của nhóm, SegFormer giữ mIoU trong khoảng 86,6--89,0\% khi cạnh ảnh đi từ
+256 đến 640 (gấp 2,5 lần), tức giảm tối đa 2,4 điểm. Điều này khớp với Bảng 1c của paper (Mix-FFN chỉ giảm 0,7 điểm khi tăng
+độ phân giải trên Cityscapes). U-Net thay đổi nhiều hơn theo một hướng đáng chú ý: mIoU \emph{tăng} khi ảnh nhỏ hơn (48,5\% ở 256)
+và giảm mạnh khi ảnh lớn hơn (32,3\% ở 640), trong khi IoU thú/nền gần như không đổi (95--97\%). Khi ảnh nhỏ, vùng nhìn của
+mỗi điểm ảnh phủ được nhiều phần con vật hơn nên U-Net nhận giống tốt hơn; điều này củng cố giải thích rằng điểm yếu của
+U-Net ở đây là thiếu ngữ cảnh toàn cục, không phải thiếu chi tiết.
+
+\textbf{Ảnh hỏng (Bảng~\ref{tab:corruption}, Hình~\ref{fig:robust}).} Paper báo cáo SegFormer-B5 bền hơn hẳn CNN trên
+Cityscapes-C. Kết quả của nhóm xác nhận xu hướng này ở cỡ B2 và trên tập khác:
+\begin{itemize}
+  \item \st{Nhiễu Gauss:} SegFormer gần như không đổi ở $\sigma = 0{,}04$ và $0{,}08$ (88,9\% và 87,5\%), còn 79,5\% ở
+        $\sigma = 0{,}16$. U-Net giảm từ 43,4\% xuống 2,6\%: ở mức nặng nhất nó gần như không còn thấy con vật (IoU thú/nền
+        5,2\%). Đây là khác biệt lớn nhất, giống với paper (57,8 so với 6,5 trên Cityscapes-C).
+  \item \st{Làm mờ và nén JPEG:} cả hai đều giảm mạnh ở mức nặng nhất (SegFormer còn 47,2\% và 45,6\%), nhưng tỉ lệ giữ lại của
+        SegFormer vẫn cao hơn: ở mức nặng nhất SegFormer giữ khoảng 53\% và 51\% mIoU ban đầu, U-Net chỉ 28\% và 8\%.
+\end{itemize}
+Vì U-Net ở đây chưa hội tụ, phép so sánh độ bền giữa hai kiến trúc không hoàn toàn công bằng; kết luận chắc chắn hơn là
+\st{SegFormer-B2 tự nó rất bền với nhiễu và đổi độ phân giải}, còn với làm mờ và JPEG nặng thì không mô hình nào bền.
+
+\subsection{Đối chiếu với paper: tái hiện được gì, khác gì, học được gì}
+\begin{table}[H]
+\centering
+\caption{Tuyên bố của paper và kết quả của nhóm.}\label{tab:compare}
+\begin{tabularx}{\linewidth}{@{}P{4.4cm}LP{2.2cm}@{}}
+\toprule
+Tuyên bố của paper & Kết quả của nhóm & Tái hiện? \\\midrule
+Encoder MiT + bộ giải mã MLP nhẹ cho kết quả tốt hơn CNN cùng cỡ (Bảng 1d: MiT-B2 45,4 vs ResNet-50 34,7 trên ADE20K) & SegFormer-B2 89,2\% vs U-Net + ResNet-50 46,1\% mIoU; tốt hơn ở cả 37 giống & Có, nhưng khoảng cách bị phóng đại do U-Net chưa hội tụ \\
+Không cần positional encoding, chịu được đổi độ phân giải (Bảng 1c) & mIoU giảm tối đa 2,4 điểm khi test từ 256 đến 640 & Có \\
+Bền với ảnh hỏng, đặc biệt nhiễu (Bảng 5, B5) & Ở B2: nhiễu nặng còn 79,5\%; làm mờ / JPEG nặng còn 45--47\% & Một phần: bền với nhiễu, không bền với mờ / JPEG nặng \\
+Hiệu quả: ít tham số, nhanh & Ít tham số hơn nhưng chậm hơn 1,7 lần và tốn gấp 1,8 lần bộ nhớ trên T4 & Không (trên phần cứng của nhóm) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\textbf{Khác biệt so với paper.} Nhóm huấn luyện khoảng 3.100 bước (paper 160.000), ảnh $384\times384$, một GPU T4, không có
+augmentation đổi tỉ lệ 0,5--2,0; bài toán là một con vật trên nền thay vì cảnh nhiều vật. Con số tuyệt đối vì vậy không so
+trực tiếp với paper được; nhóm chỉ đối chiếu \emph{xu hướng}.
+
+\textbf{Điều nhóm học được.} (1) Một công thức huấn luyện ``chuẩn'' của một paper có thể bất lợi cho kiến trúc khác: so sánh
+công bằng cần tinh chỉnh riêng cho từng mô hình hoặc ít nhất chạy đến khi hội tụ. (2) Tách metric (IoU thú/nền, độ chính
+xác giống theo ảnh, nhầm theo loài) giúp chỉ ra chính xác lỗi nằm ở nhận giống chứ không ở khoanh vùng; chỉ nhìn mIoU sẽ không
+thấy điều này. (3) ``Ít tham số'' khác ``rẻ'': cần đo thời gian và bộ nhớ thực trên phần cứng định dùng.
+
+% ======================================================================= 8
+\section{Hạn chế}
+\begin{itemize}
+  \item \st{U-Net chưa hội tụ.} Đường mIoU validation của U-Net vẫn tăng ở epoch cuối; giới hạn GPU chỉ cho phép 15 epoch và
+        một công thức chung. Thí nghiệm công bằng hơn nên tìm learning rate riêng cho U-Net (ví dụ $10^{-4}$ cho encoder) và
+        chạy lâu hơn.
+  \item \st{Mỗi cấu hình chỉ chạy một lần} (seed 42), nên không có khoảng tin cậy. Với SegFormer, mIoU validation dao động
+        khoảng 1--2 điểm giữa các epoch cuối, nên các chênh lệch nhỏ (ví dụ giữa 100\% và 50\% dữ liệu: 89,2 so với 88,2)
+        không chắc có ý nghĩa.
+  \item \st{Đánh giá thêm trên 1.000 ảnh test} thay vì toàn bộ 3.662 ảnh do thiếu thời gian GPU.
+  \item \st{Nhãn:} vùng viền dày bị bỏ qua nên metric không đo được độ sắc nét của biên; tập test còn ảnh có trimap đảo ngược.
+  \item \st{Số epoch giữ cố định cho mọi lượng dữ liệu}, nên cấu hình ít ảnh có ít bước cập nhật hơn.
+  \item Chưa làm thử chéo trên Pascal VOC và Grad-CAM như dự định mở rộng ở A2.1.
+\end{itemize}
+
+% ======================================================================= 9
+\section{Sử dụng công cụ AI}
+Theo quy định liêm chính học thuật của môn học, nhóm ghi rõ: trợ lý AI (Claude) được dùng để hỗ trợ viết khung mã nguồn,
+soạn bố cục báo cáo và rà soát lỗi. Nhóm đã đọc, chạy kiểm tra, chỉnh sửa và chịu trách nhiệm về toàn bộ nội dung;
+mọi lựa chọn chủ đề, paper, dataset và mô hình đều được nhóm hiểu và có thể giải thích.
+
+% ======================================================================= Tài liệu tham khảo
+\begin{thebibliography}{9}
+\bibitem{xie2021} E. Xie, W. Wang, Z. Yu, A. Anandkumar, J. M. Alvarez, P. Luo. SegFormer: Simple and Efficient Design for Semantic Segmentation with Transformers. \emph{NeurIPS}, 2021. \url{https://arxiv.org/abs/2105.15203}.
+\bibitem{parkhi2012} O. M. Parkhi, A. Vedaldi, A. Zisserman, C. V. Jawahar. Cats and Dogs. \emph{CVPR}, 2012.
+\bibitem{ronneberger2015} O. Ronneberger, P. Fischer, T. Brox. U-Net: Convolutional Networks for Biomedical Image Segmentation. \emph{MICCAI}, 2015.
+\bibitem{he2016} K. He, X. Zhang, S. Ren, J. Sun. Deep Residual Learning for Image Recognition. \emph{CVPR}, 2016.
+\bibitem{everingham2010} M. Everingham, L. Van Gool, C. K. I. Williams, J. Winn, A. Zisserman. The Pascal Visual Object Classes (VOC) Challenge. \emph{IJCV}, 2010.
+\bibitem{timm} R. Wightman. PyTorch Image Models (timm). \url{https://github.com/huggingface/pytorch-image-models}.
+\bibitem{wolf2020} T. Wolf et al. Transformers: State-of-the-Art Natural Language Processing. \emph{EMNLP (System Demonstrations)}, 2020.
+\end{thebibliography}
+
+\end{document}
